@@ -7,3 +7,26 @@ services:
     volumes:
       - ".:/usr/src/app"
     env_file: .env
+    environment:
+      DB_URL: "mongodb://db:27017/replier"
+  db:
+    image: mongo
+    volumes:
+      - "db_volume:/data/db"
+    ports:
+      - "3003:27017"
+  mongo-express:
+    image: mongo-express
+    ports:
+      - "3002:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: db
+  ngrok:
+    image: wernight/ngrok
+    environment:
+      NGROK_PORT: main:3000
+    env_file: .ngrok.env
+    ports:
+      - "3001:4040"
+volumes:
+  db_volume:
