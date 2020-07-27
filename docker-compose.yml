@@ -9,6 +9,7 @@ services:
     env_file: .env
     environment:
       DB_URL: "mongodb://db:27017/replier"
+      PORT: 3000
   db:
     image: mongo
     volumes:

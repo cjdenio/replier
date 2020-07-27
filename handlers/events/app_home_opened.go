@@ -1,6 +1,7 @@
 package events
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -19,7 +20,7 @@ func HandleAppHomeOpened(outer *slackevents.EventsAPICallbackEvent, inner *slack
 	if err != nil {
 		blocks = []slack.Block{
 			slack.NewSectionBlock(
-				slack.NewTextBlockObject("mrkdwn", "Please log in.", false, false),
+				slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("Hi there! :wave: Please <%s|log in real quick> to get started!", os.Getenv("HOST")+"/login"), false, false),
 				nil,
 				nil,
 			),
@@ -27,10 +28,16 @@ func HandleAppHomeOpened(outer *slackevents.EventsAPICallbackEvent, inner *slack
 	} else {
 		blocks = []slack.Block{
 			slack.NewSectionBlock(
-				slack.NewTextBlockObject("mrkdwn", user.Reply.Message, false, false),
+				slack.NewTextBlockObject("mrkdwn", "*Your autoreply message:*", false, false),
 				nil,
 				nil,
 			),
+			slack.NewSectionBlock(
+				slack.NewTextBlockObject("mrkdwn", user.Reply.Message, false, false),
+				nil,
+				slack.NewAccessory(slack.NewButtonBlockElement("edit_message", "", slack.NewTextBlockObject("plain_text", ":pencil: Edit", true, false))),
+			),
+			slack.NewDividerBlock(),
 		}
 	}
 
