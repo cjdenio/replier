@@ -10,6 +10,7 @@ import (
 	//"github.com/cjdenio/replier/db"
 )
 
+// HandleOAuthCode handles the OAuth redirect
 func HandleOAuthCode(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 	resp, err := slack.GetOAuthV2Response(&http.Client{}, os.Getenv("SLACK_CLIENT_ID"), os.Getenv("SLACK_CLIENT_SECRET"), code, os.Getenv("SLACK_REDIRECT_URI"))

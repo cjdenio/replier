@@ -27,6 +27,7 @@ func Connect() {
 	DB = client
 }
 
+// AddUser adds a user
 func AddUser(user User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -34,4 +35,16 @@ func AddUser(user User) error {
 	_, err := DB.Database("replier").Collection("users").UpdateOne(ctx, bson.D{{Key: "user_id", Value: user.UserID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "user_id", Value: user.UserID}, {Key: "token", Value: user.Token}}}}, options.Update().SetUpsert(true))
 
 	return err
+}
+
+// GetUser gets a user based off of a user_id
+func GetUser(userID string) User {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	var result User
+
+	DB.Database("replier").Collection("users").FindOne(ctx, bson.D{{Key: "user_id", Value: userID}}).Decode(&result)
+
+	return result
 }

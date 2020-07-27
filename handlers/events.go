@@ -2,14 +2,15 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 
+	"github.com/cjdenio/replier/handlers/events"
 	"github.com/slack-go/slack/slackevents"
 )
 
+// HandleEvents handles Events API requests
 func HandleEvents(w http.ResponseWriter, r *http.Request) {
 	buf, _ := ioutil.ReadAll(r.Body)
 
@@ -31,7 +32,9 @@ func HandleEvents(w http.ResponseWriter, r *http.Request) {
 		innerEvent := slackEvent.InnerEvent
 		switch ev := innerEvent.Data.(type) {
 		case *slackevents.MessageEvent:
-			fmt.Println([]byte(ev.Text))
+			if ev.ChannelType == "im" {
+				events.HandleMessage(slackEvent.Data.(*slackevents.EventsAPICallbackEvent), ev)
+			}
 		}
 	}
 }
