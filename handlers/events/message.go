@@ -33,7 +33,7 @@ func HandleMessage(outer *slackevents.EventsAPICallbackEvent, inner *slackevents
 						nil,
 						nil,
 					),
-					slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", "This is an autoreply", false, false)),
+					slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", "This is an automatic reply", false, false)),
 				))
 			}
 		}(v)
