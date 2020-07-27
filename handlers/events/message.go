@@ -3,19 +3,41 @@ package events
 import (
 	"github.com/cjdenio/replier/db"
 	//"github.com/slack-go/slack"
+	"sync"
+
+	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 )
 
 // HandleMessage handles DMs
 func HandleMessage(outer *slackevents.EventsAPICallbackEvent, inner *slackevents.MessageEvent) {
 	authedUsers := outer.AuthedUsers
+	wg := sync.WaitGroup{}
+
+	wg.Add(len(authedUsers))
+
 	for _, v := range authedUsers {
 		go func(userID string) {
-			user := db.GetUser(userID)
+			defer wg.Done()
 
-			if user.HasActiveReply() {
-				//client := slack.New(user.Token)
+			if userID == inner.User {
+				return
+			}
+			user, err := db.GetUser(userID)
+
+			if err == nil && user.ReplyShouldSend() {
+				client := slack.New(user.Token)
+				client.PostMessage(inner.Channel, slack.MsgOptionBlocks(
+					slack.NewSectionBlock(
+						slack.NewTextBlockObject("mrkdwn", user.Reply.Message, false, false),
+						nil,
+						nil,
+					),
+					slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", "This is an autoreply", false, false)),
+				))
 			}
 		}(v)
 	}
+
+	wg.Wait()
 }

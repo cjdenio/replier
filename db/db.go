@@ -38,13 +38,16 @@ func AddUser(user User) error {
 }
 
 // GetUser gets a user based off of a user_id
-func GetUser(userID string) User {
+func GetUser(userID string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	var result User
+	var result *User
 
-	DB.Database("replier").Collection("users").FindOne(ctx, bson.D{{Key: "user_id", Value: userID}}).Decode(&result)
+	err := DB.Database("replier").Collection("users").FindOne(ctx, bson.D{{Key: "user_id", Value: userID}}).Decode(&result)
 
-	return result
+	if err != nil {
+		return &User{}, err
+	}
+	return result, nil
 }

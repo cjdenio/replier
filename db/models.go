@@ -12,11 +12,12 @@ type UserReply struct {
 	Message string `json:"message"`
 	Start   string `json:"start,omitempty"`
 	End     string `json:"end,omitempty"`
+	Active  bool   `json:"active"`
 }
 
-// HasActiveReply figures out whether or not the user has a currently active reply
-func (user User) HasActiveReply() bool {
-	if user.Reply.Message == "" {
+// ReplyShouldSend figures out whether or not the configured autoreply should be sent
+func (user User) ReplyShouldSend() bool {
+	if user.Reply.Message == "" || !user.Reply.Active {
 		return false
 	}
 
