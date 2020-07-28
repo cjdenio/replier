@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 
@@ -16,5 +17,7 @@ func main() {
 	http.HandleFunc("/login", handlers.HandleLogin)
 	http.HandleFunc("/code", handlers.HandleOAuthCode)
 
-	http.ListenAndServe(":"+os.Getenv("PORT"), http.DefaultServeMux)
+	err := http.ListenAndServe(":"+os.Getenv("PORT"), http.DefaultServeMux)
+
+	log.Fatal(err)
 }

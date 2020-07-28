@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -50,4 +51,28 @@ func GetUser(userID string) (*User, error) {
 		return &User{}, err
 	}
 	return result, nil
+}
+
+// SetUserMessage sets a users message
+func SetUserMessage(userID string, message string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	_, err := DB.Database("replier").Collection("users").UpdateOne(ctx, bson.D{{Key: "user_id", Value: userID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "reply.message", Value: message}}}})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ToggleReplyActive(userID string) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	_, err := DB.Database("replier").Collection("users").UpdateOne(ctx, bson.D{{Key: "user_id", Value: userID}}, bson.M{"$bit": bson.M{"reply.active": bson.M{"xor": 1}}})
+	if err != nil {
+		fmt.Println(err)
+	}
 }
