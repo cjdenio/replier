@@ -17,7 +17,12 @@ import (
 func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 	buf, _ := ioutil.ReadAll(r.Body)
 	r.Form, _ = url.ParseQuery(string(buf))
-	//fmt.Println(r.Form.Get("payload"))
+
+	if !util.VerifySlackRequest(r, buf) {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Not verified :("))
+		return
+	}
 
 	var parsed slack.InteractionCallback
 	json.Unmarshal([]byte(r.Form.Get("payload")), &parsed)

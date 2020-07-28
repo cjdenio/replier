@@ -7,12 +7,19 @@ import (
 	"net/http"
 
 	"github.com/cjdenio/replier/handlers/events"
+	"github.com/cjdenio/replier/util"
 	"github.com/slack-go/slack/slackevents"
 )
 
 // HandleEvents handles Events API requests
 func HandleEvents(w http.ResponseWriter, r *http.Request) {
 	buf, _ := ioutil.ReadAll(r.Body)
+
+	if !util.VerifySlackRequest(r, buf) {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Not verified :("))
+		return
+	}
 
 	slackEvent, err := slackevents.ParseEvent(buf, slackevents.OptionNoVerifyToken())
 	if err != nil {

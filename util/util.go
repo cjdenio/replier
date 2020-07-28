@@ -1,7 +1,11 @@
 package util
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/cjdenio/replier/db"
@@ -75,4 +79,16 @@ func UpdateAppHome(userID string) error {
 	}
 
 	return nil
+}
+
+// VerifySlackRequest verifies a Slack request
+func VerifySlackRequest(r *http.Request, body []byte) bool {
+	mac := hmac.New(sha256.New, []byte(os.Getenv("SLACK_SIGNING_SECRET")))
+
+	body = append([]byte(r.Header.Get("X-Slack-Request-Timestamp")+":"), body...)
+	body = append([]byte("v0:"), body...)
+
+	mac.Write(body)
+
+	return hmac.Equal([]byte("v0="+hex.EncodeToString(mac.Sum(nil))), []byte(r.Header.Get("X-Slack-Signature")))
 }
