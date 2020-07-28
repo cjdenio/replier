@@ -1,0 +1,12 @@
+FROM golang:latest
+
+WORKDIR /usr/src/app
+
+COPY . .
+
+RUN go get .
+RUN go build -o replier .
+
+EXPOSE 3000
+
+CMD [ "./replier" ]
