@@ -18,8 +18,16 @@ func UpdateAppHome(userID string) error {
 
 	user, err := db.GetUser(userID)
 
+	needsToLogin := false
+
+	if err != nil || user.Token == "" {
+		needsToLogin = true
+	} else if _, err := slack.New(user.Token).AuthTest(); err != nil {
+		needsToLogin = true
+	}
+
 	var blocks []slack.Block
-	if err != nil {
+	if needsToLogin {
 		fmt.Println(err)
 		blocks = []slack.Block{
 			slack.NewSectionBlock(

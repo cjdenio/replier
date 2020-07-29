@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/cjdenio/replier/db"
+	"github.com/cjdenio/replier/util"
 	"github.com/slack-go/slack"
 	//"github.com/cjdenio/replier/db"
 )
@@ -24,4 +25,6 @@ func HandleOAuthCode(w http.ResponseWriter, r *http.Request) {
 	})
 	w.Header().Add("Content-Type", "text/html")
 	w.Write([]byte("<h1 style='font-family:sans-serif'>You're logged in!</h1><p style='font-family:sans-serif'>You can now head on back to Slack.</p>"))
+
+	util.UpdateAppHome(resp.AuthedUser.ID)
 }

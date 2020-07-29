@@ -67,6 +67,7 @@ func SetUserMessage(userID string, message string) error {
 	return nil
 }
 
+// ToggleReplyActive toggle's the activity of a user's autoreply
 func ToggleReplyActive(userID string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
