@@ -12,6 +12,9 @@ import (
 func main() {
 	db.Connect()
 
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello World!"))
+	})
 	http.HandleFunc("/slack/events", handlers.HandleEvents)
 	http.HandleFunc("/slack/interactivity", handlers.HandleInteractivity)
 	http.HandleFunc("/login", handlers.HandleLogin)
