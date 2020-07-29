@@ -13,7 +13,7 @@ func main() {
 	db.Connect()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello World!"))
+		http.Redirect(w, r, "https://github.com/cjdenio/replier", http.StatusMovedPermanently)
 	})
 	http.HandleFunc("/slack/events", handlers.HandleEvents)
 	http.HandleFunc("/slack/interactivity", handlers.HandleInteractivity)
