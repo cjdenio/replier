@@ -9,12 +9,9 @@ type User struct {
 
 // UserReply represents a user's chosen auto reply
 type UserReply struct {
-	Message    string   `json:"message"`
-	Start      string   `json:"start,omitempty"`
-	End        string   `json:"end,omitempty"`
-	Active     bool     `json:"active"`
-	LastSentOn int      `json:"last_sent_on,omitempty"`
-	Whitelist  []string `json:"whitelist"`
+	Message   string   `json:"message"`
+	Active    bool     `json:"active"`
+	Whitelist []string `json:"whitelist"`
 }
 
 // ReplyShouldSend figures out whether or not the configured autoreply should be sent
