@@ -60,7 +60,7 @@ func UpdateAppHome(userID string) error {
 			slack.NewSectionBlock(
 				slack.NewTextBlockObject("mrkdwn", replyMessage, false, false),
 				nil,
-				slack.NewAccessory(slack.NewButtonBlockElement("edit_message", "", slack.NewTextBlockObject("plain_text", ":pencil: Edit", true, false))),
+				slack.NewAccessory(slack.NewButtonBlockElement("edit_message", "", slack.NewTextBlockObject("plain_text", ":pencil: Edit settings", true, false))),
 			),
 			slack.NewDividerBlock(),
 			slack.NewSectionBlock(
@@ -99,4 +99,14 @@ func VerifySlackRequest(r *http.Request, body []byte) bool {
 	mac.Write(body)
 
 	return hmac.Equal([]byte("v0="+hex.EncodeToString(mac.Sum(nil))), []byte(r.Header.Get("X-Slack-Signature")))
+}
+
+// IsInArray checks if the value is in the array
+func IsInArray(array []string, value string) bool {
+	for _, v := range array {
+		if v == value {
+			return true
+		}
+	}
+	return false
 }

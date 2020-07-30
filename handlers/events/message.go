@@ -2,7 +2,8 @@ package events
 
 import (
 	"github.com/cjdenio/replier/db"
-	//"github.com/slack-go/slack"
+	"github.com/cjdenio/replier/util"
+
 	"sync"
 
 	"github.com/slack-go/slack"
@@ -25,7 +26,7 @@ func HandleMessage(outer *slackevents.EventsAPICallbackEvent, inner *slackevents
 			}
 			user, err := db.GetUser(userID)
 
-			if err == nil && user.ReplyShouldSend() {
+			if err == nil && user.ReplyShouldSend() && !util.IsInArray(user.Reply.Whitelist, inner.User) {
 				client := slack.New(user.Token)
 				client.PostMessage(inner.Channel, slack.MsgOptionBlocks(
 					slack.NewSectionBlock(
