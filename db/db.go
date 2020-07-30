@@ -67,6 +67,20 @@ func SetUserMessage(userID string, message string) error {
 	return nil
 }
 
+// SetUserWhitelist sets a user's whitelist
+func SetUserWhitelist(userID string, whitelist []string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	_, err := DB.Database("replier").Collection("users").UpdateOne(ctx, bson.D{{Key: "user_id", Value: userID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "reply.whitelist", Value: whitelist}}}})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // ToggleReplyActive toggle's the activity of a user's autoreply
 func ToggleReplyActive(userID string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)

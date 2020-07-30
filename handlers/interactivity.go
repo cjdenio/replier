@@ -53,6 +53,18 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 							},
 							Optional: true,
 						},
+						&slack.InputBlock{
+							Type:    slack.MBTInput,
+							BlockID: "whitelist",
+							Label:   slack.NewTextBlockObject("plain_text", "Whitelist", false, false),
+							Element: &slack.MultiSelectBlockElement{
+								Type:         "multi_users_select",
+								InitialUsers: user.Reply.Whitelist,
+								ActionID:     "whitelist",
+								Placeholder:  slack.NewTextBlockObject("plain_text", "Select some...", false, false),
+							},
+							Optional: true,
+						},
 					},
 				},
 				Close:  slack.NewTextBlockObject("plain_text", "Cancel", false, false),
@@ -72,8 +84,10 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 		switch parsed.View.CallbackID {
 		case "edit_message":
 			desiredMessage := parsed.View.State.Values["message"]["message"].Value
+			whitelist := parsed.View.State.Values["whitelist"]["whitelist"].SelectedUsers
 
 			db.SetUserMessage(parsed.User.ID, desiredMessage)
+			db.SetUserWhitelist(parsed.User.ID, whitelist)
 			util.UpdateAppHome(parsed.User.ID)
 		}
 	}
