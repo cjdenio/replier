@@ -3,6 +3,7 @@
 An autoreply bot for the [Hack Club](https://hackclub.com) Slack! Built using Go, MongoDB, and Docker.
 
 ![](./img/screenshot1.png)
+![](./img/screenshot2.png)
 
 ## How it works
 
