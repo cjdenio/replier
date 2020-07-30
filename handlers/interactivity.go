@@ -65,6 +65,7 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 							},
 							Optional: true,
 						},
+						slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", "These people will _not_ receive your autoreply, even if it's enabled.", false, false)),
 					},
 				},
 				Close:  slack.NewTextBlockObject("plain_text", "Cancel", false, false),
