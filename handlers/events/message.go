@@ -1,6 +1,9 @@
 package events
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/cjdenio/replier/db"
 	"github.com/cjdenio/replier/util"
 
@@ -25,8 +28,9 @@ func HandleMessage(outer *slackevents.EventsAPICallbackEvent, inner *slackevents
 				return
 			}
 			user, err := db.GetUser(userID)
-
-			if err == nil && user.ReplyShouldSend() && !util.IsInArray(user.Reply.Whitelist, inner.User) {
+			lastPostedOn := db.GetConversationLastPostedOn(inner.Channel, userID)
+			fmt.Println(lastPostedOn)
+			if err == nil && user.ReplyShouldSend() && !util.IsInArray(user.Reply.Whitelist, inner.User) && (lastPostedOn == time.Time{} || time.Now().Sub(lastPostedOn).Minutes() > 1) {
 				client := slack.New(user.Token)
 				client.PostMessage(inner.Channel, slack.MsgOptionBlocks(
 					slack.NewSectionBlock(
@@ -36,6 +40,7 @@ func HandleMessage(outer *slackevents.EventsAPICallbackEvent, inner *slackevents
 					),
 					slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", "This is an automatic reply", false, false)),
 				))
+				db.SetConversationLastPostedOn(inner.Channel, userID, time.Now())
 			}
 		}(v)
 	}

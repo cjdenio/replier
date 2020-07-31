@@ -91,3 +91,39 @@ func ToggleReplyActive(userID string) {
 		fmt.Println(err)
 	}
 }
+
+// GetConversationLastPostedOn gets the Time that the conversation was last autoreplied to.
+func GetConversationLastPostedOn(conversationID, userID string) time.Time {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	var conversation *map[string]interface{}
+
+	err := DB.Database("replier").Collection("conversations").FindOne(ctx, bson.M{"user_id": userID, "conversation_id": conversationID}).Decode(&conversation)
+
+	if err != nil {
+		return time.Time{}
+	}
+	fmt.Printf("%+v", conversation)
+
+	//result := time.Unix(conversation["last_posted_on"].(int64), 0)
+
+	return time.Unix(0, 0)
+}
+
+// SetConversationLastPostedOn sets the Time above ^
+func SetConversationLastPostedOn(conversationID, userID string, lastPostedOn time.Time) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	_, err := DB.Database("replier").Collection("conversations").UpdateOne(ctx, bson.D{
+		{Key: "conversation_id", Value: conversationID},
+		{Key: "user_id", Value: userID},
+	}, bson.D{
+		{Key: "$set", Value: bson.D{
+			{Key: "last_posted_on", Value: lastPostedOn.Unix()},
+		}},
+	}, options.Update().SetUpsert(true))
+
+	return err
+}

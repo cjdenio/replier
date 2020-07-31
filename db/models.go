@@ -27,5 +27,5 @@ func (user User) ReplyShouldSend() bool {
 type Conversation struct {
 	UserID         string `json:"user_id"`
 	ConversationID string `json:"conversation_id"`
-	LastPostedOn   int    `json:"last_posted_on"`
+	LastPostedOn   int64  `json:"last_posted_on"`
 }
