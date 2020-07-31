@@ -22,3 +22,10 @@ func (user User) ReplyShouldSend() bool {
 
 	return true
 }
+
+// Conversation represents a single DM or channel.
+type Conversation struct {
+	UserID         string `json:"user_id"`
+	ConversationID string `json:"conversation_id"`
+	LastPostedOn   int    `json:"last_posted_on"`
+}
