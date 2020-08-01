@@ -97,18 +97,17 @@ func GetConversationLastPostedOn(conversationID, userID string) time.Time {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	var conversation *map[string]interface{}
+	var conversation *Conversation
 
 	err := DB.Database("replier").Collection("conversations").FindOne(ctx, bson.M{"user_id": userID, "conversation_id": conversationID}).Decode(&conversation)
 
 	if err != nil {
 		return time.Time{}
 	}
-	fmt.Printf("%+v", conversation)
 
-	//result := time.Unix(conversation["last_posted_on"].(int64), 0)
+	result := time.Unix(conversation.LastPostedOn, 0)
 
-	return time.Unix(0, 0)
+	return result
 }
 
 // SetConversationLastPostedOn sets the Time above ^

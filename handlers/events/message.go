@@ -1,7 +1,6 @@
 package events
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/cjdenio/replier/db"
@@ -29,8 +28,8 @@ func HandleMessage(outer *slackevents.EventsAPICallbackEvent, inner *slackevents
 			}
 			user, err := db.GetUser(userID)
 			lastPostedOn := db.GetConversationLastPostedOn(inner.Channel, userID)
-			fmt.Println(lastPostedOn)
-			if err == nil && user.ReplyShouldSend() && !util.IsInArray(user.Reply.Whitelist, inner.User) && (lastPostedOn == time.Time{} || time.Now().Sub(lastPostedOn).Minutes() > 1) {
+
+			if err == nil && user.ReplyShouldSend() && !util.IsInArray(user.Reply.Whitelist, inner.User) && time.Now().Sub(lastPostedOn).Minutes() > 15 {
 				client := slack.New(user.Token)
 				client.PostMessage(inner.Channel, slack.MsgOptionBlocks(
 					slack.NewSectionBlock(

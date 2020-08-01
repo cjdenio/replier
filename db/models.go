@@ -2,16 +2,16 @@ package db
 
 // User represents a DB user.
 type User struct {
-	Token  string    `json:"token"`
-	UserID string    `json:"user_id"`
-	Reply  UserReply `json:"reply"`
+	Token  string    `bson:"token"`
+	UserID string    `bson:"user_id"`
+	Reply  UserReply `bson:"reply"`
 }
 
 // UserReply represents a user's chosen auto reply
 type UserReply struct {
-	Message   string   `json:"message"`
-	Active    bool     `json:"active"`
-	Whitelist []string `json:"whitelist"`
+	Message   string   `bson:"message"`
+	Active    bool     `bson:"active"`
+	Whitelist []string `bson:"whitelist"`
 }
 
 // ReplyShouldSend figures out whether or not the configured autoreply should be sent
@@ -25,7 +25,7 @@ func (user User) ReplyShouldSend() bool {
 
 // Conversation represents a single DM or channel.
 type Conversation struct {
-	UserID         string `json:"user_id"`
-	ConversationID string `json:"conversation_id"`
-	LastPostedOn   int64  `json:"last_posted_on"`
+	UserID         string `bson:"user_id"`
+	ConversationID string `bson:"conversation_id"`
+	LastPostedOn   int64  `bson:"last_posted_on"`
 }
