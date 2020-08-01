@@ -41,6 +41,8 @@ func HandleEvents(w http.ResponseWriter, r *http.Request) {
 		case *slackevents.MessageEvent:
 			if ev.ChannelType == "im" {
 				events.HandleMessage(slackEvent.Data.(*slackevents.EventsAPICallbackEvent), ev)
+			} else {
+				events.HandleMessageNonDM(slackEvent.Data.(*slackevents.EventsAPICallbackEvent), ev)
 			}
 		case *slackevents.AppHomeOpenedEvent:
 			events.HandleAppHomeOpened(slackEvent.Data.(*slackevents.EventsAPICallbackEvent), ev)
