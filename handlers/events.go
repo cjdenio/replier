@@ -40,7 +40,6 @@ func HandleEvents(w http.ResponseWriter, r *http.Request) {
 		switch ev := innerEvent.Data.(type) {
 		case *slackevents.MessageEvent:
 			if ev.ChannelType == "im" {
-				//fmt.Println(string(buf))
 				events.HandleMessage(slackEvent.Data.(*slackevents.EventsAPICallbackEvent), ev)
 			}
 		case *slackevents.AppHomeOpenedEvent:
