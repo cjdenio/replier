@@ -1,0 +1,13 @@
+name: Format
+on:
+  - push
+  - pull_request
+jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-go@v2
+      - run: gofmt -w .
+      - run: git diff --exit-code
