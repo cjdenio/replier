@@ -40,7 +40,7 @@ func HandleMessage(outer *slackevents.EventsAPICallbackEvent, inner *slackevents
 						nil,
 					),
 					slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("<slack://app?team=%s&id=%s&tab=home|This is an automatic reply>", outer.TeamID, outer.APIAppID), false, false)),
-				))
+				), slack.MsgOptionText(user.Reply.Message, false))
 				db.SetConversationLastPostedOn(inner.Channel, userID, time.Now())
 			}
 		}(v)
@@ -80,7 +80,7 @@ func HandleMessageNonDM(outer *slackevents.EventsAPICallbackEvent, inner *slacke
 						nil,
 					),
 					slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("<slack://app?team=%s&id=%s&tab=home|This is an automatic reply>", outer.TeamID, outer.APIAppID), false, false)),
-				), slack.MsgOptionTS(timestampToReplyTo))
+				), slack.MsgOptionText(user.Reply.Message, false), slack.MsgOptionTS(timestampToReplyTo))
 			}
 		}(v)
 	}
