@@ -12,6 +12,15 @@ import (
 	"github.com/slack-go/slack"
 )
 
+type HeaderBlock struct {
+	Type string                 `json:"type"`
+	Text *slack.TextBlockObject `json:"text"`
+}
+
+func (b HeaderBlock) BlockType() slack.MessageBlockType {
+	return slack.MessageBlockType(b.Type)
+}
+
 // UpdateAppHome updates the App Home for the given user
 func UpdateAppHome(userID string) error {
 	client := slack.New(os.Getenv("SLACK_TOKEN"))
@@ -28,7 +37,6 @@ func UpdateAppHome(userID string) error {
 
 	var blocks []slack.Block
 	if needsToLogin {
-		fmt.Println(err)
 		blocks = []slack.Block{
 			slack.NewSectionBlock(
 				slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("Hi there! :wave: Please <%s|log in real quick> to get started!", os.Getenv("HOST")+"/login"), false, false),
@@ -45,10 +53,12 @@ func UpdateAppHome(userID string) error {
 
 		replyActiveText := ":x: Your autoreply isn't active. That means that people will *not* receive it when they DM you."
 		replyToggleButtonText := "Turn On"
+		replyToggleButtonStyle := slack.StylePrimary
 
 		if user.Reply.Active {
 			replyActiveText = ":heavy_check_mark: Your autoreply is active! That means that people *will* receive it when they attempt to DM you."
 			replyToggleButtonText = "Turn Off"
+			replyToggleButtonStyle = ""
 		}
 
 		blocks = []slack.Block{
@@ -66,11 +76,12 @@ func UpdateAppHome(userID string) error {
 			slack.NewSectionBlock(
 				slack.NewTextBlockObject("mrkdwn", replyActiveText, false, false),
 				nil,
-				slack.NewAccessory(slack.NewButtonBlockElement(
-					"reply_toggle",
-					"",
-					slack.NewTextBlockObject("plain_text", replyToggleButtonText, false, false),
-				)),
+				slack.NewAccessory(&slack.ButtonBlockElement{
+					Type:     slack.METButton,
+					Text:     slack.NewTextBlockObject("plain_text", replyToggleButtonText, false, false),
+					ActionID: "reply_toggle",
+					Style:    replyToggleButtonStyle,
+				}),
 			),
 		}
 	}

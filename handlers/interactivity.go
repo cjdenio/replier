@@ -66,6 +66,30 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 							Optional: true,
 						},
 						slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", "These people will _not_ receive your autoreply, even if it's enabled.", false, false)),
+						&util.HeaderBlock{
+							Type: "header",
+							Text: slack.NewTextBlockObject("plain_text", ":calendar: Dates", true, false),
+						},
+						&slack.InputBlock{
+							Type:     slack.MBTInput,
+							BlockID:  "start",
+							Label:    slack.NewTextBlockObject("plain_text", "Start Date", false, false),
+							Optional: true,
+							Element: &slack.DatePickerBlockElement{
+								Type:     slack.METDatepicker,
+								ActionID: "start",
+							},
+						},
+						&slack.InputBlock{
+							Type:     slack.MBTInput,
+							BlockID:  "end",
+							Label:    slack.NewTextBlockObject("plain_text", "End Date", false, false),
+							Optional: true,
+							Element: &slack.DatePickerBlockElement{
+								Type:     slack.METDatepicker,
+								ActionID: "end",
+							},
+						},
 					},
 				},
 				Close:  slack.NewTextBlockObject("plain_text", "Cancel", false, false),
