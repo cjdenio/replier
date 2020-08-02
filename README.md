@@ -1,6 +1,8 @@
 <!-- DO NOT REMOVE - contributor_list:data:start:["cjdenio"]:end -->
 # 🤖 Replier
 
+![Format](https://github.com/cjdenio/replier/workflows/Format/badge.svg)
+
 An autoreply bot for the [Hack Club](https://hackclub.com) Slack! Built using Go, MongoDB, and Docker.
 
 ![](./img/screenshot1.png)
