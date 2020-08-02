@@ -37,7 +37,7 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 			client := slack.New(os.Getenv("SLACK_TOKEN"))
 			_, err := client.OpenView(parsed.TriggerID, slack.ModalViewRequest{
 				Type:       "modal",
-				Title:      slack.NewTextBlockObject("plain_text", "Edit Message", false, false),
+				Title:      slack.NewTextBlockObject("plain_text", "Edit Settings", false, false),
 				CallbackID: "edit_message",
 				Blocks: slack.Blocks{
 					BlockSet: []slack.Block{
