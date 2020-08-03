@@ -2,7 +2,7 @@ package util
 
 import (
 	"crypto/hmac"
-	"crypto/sha256"
+	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
 	"net/http"
@@ -91,7 +91,7 @@ func UpdateAppHome(userID string) error {
 
 // VerifySlackRequest verifies a Slack request
 func VerifySlackRequest(r *http.Request, body []byte) bool {
-	mac := hmac.New(sha256.New, []byte(os.Getenv("SLACK_SIGNING_SECRET")))
+	mac := hmac.New(sha1.New, []byte(os.Getenv("SLACK_SIGNING_SECRET")))
 
 	body = append([]byte(r.Header.Get("X-Slack-Request-Timestamp")+":"), body...)
 	body = append([]byte("v0:"), body...)
