@@ -41,7 +41,12 @@ func UpdateAppHome(userID string) error {
 			slack.NewSectionBlock(
 				slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("Hi there! :wave: Please <%s|log in real quick> to get started!", os.Getenv("HOST")+"/login"), false, false),
 				nil,
-				nil,
+				slack.NewAccessory(&slack.ButtonBlockElement{
+					Type:     slack.METButton,
+					Text:     slack.NewTextBlockObject("plain_text", ":bust_in_silhouette: Login", true, false),
+					ActionID: "login",
+					URL:      os.Getenv("HOST") + "/login",
+				}),
 			),
 		}
 	} else {
@@ -53,12 +58,10 @@ func UpdateAppHome(userID string) error {
 
 		replyActiveText := ":x: Your autoreply isn't active. That means that people will *not* receive it when they DM you."
 		replyToggleButtonText := "Turn On"
-		replyToggleButtonStyle := slack.StylePrimary
 
 		if user.Reply.Active {
 			replyActiveText = ":heavy_check_mark: Your autoreply is active! That means that people *will* receive it when they attempt to DM you."
 			replyToggleButtonText = "Turn Off"
-			replyToggleButtonStyle = ""
 		}
 
 		blocks = []slack.Block{
@@ -80,7 +83,6 @@ func UpdateAppHome(userID string) error {
 					Type:     slack.METButton,
 					Text:     slack.NewTextBlockObject("plain_text", replyToggleButtonText, false, false),
 					ActionID: "reply_toggle",
-					Style:    replyToggleButtonStyle,
 				}),
 			),
 		}

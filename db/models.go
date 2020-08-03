@@ -1,17 +1,22 @@
 package db
 
+import "time"
+
 // User represents a DB user.
 type User struct {
 	Token  string    `bson:"token"`
 	UserID string    `bson:"user_id"`
-	Reply  UserReply `bson:"reply"`
+	Reply  UserReply `bson:"reply,omitempty"`
+	Scopes []string  `bson:"scopes"`
 }
 
 // UserReply represents a user's chosen auto reply
 type UserReply struct {
-	Message   string   `bson:"message"`
-	Active    bool     `bson:"active"`
-	Whitelist []string `bson:"whitelist"`
+	Message   string    `bson:"message"`
+	Active    bool      `bson:"active"`
+	Whitelist []string  `bson:"whitelist"`
+	Start     time.Time `bson:"start"`
+	End       time.Time `bson:"end"`
 }
 
 // ReplyShouldSend figures out whether or not the configured autoreply should be sent
