@@ -123,3 +123,18 @@ func IsInArray(array []string, value string) bool {
 	}
 	return false
 }
+
+func GetUserTimezone(userID string) (string, error) {
+	user, err := db.GetUser(userID)
+	if err != nil {
+		return "", err
+	}
+
+	client := slack.New(user.Token)
+	slackUser, err := client.GetUserInfo(user.UserID)
+	if err != nil {
+		return "", err
+	}
+
+	return slackUser.TZ, nil
+}

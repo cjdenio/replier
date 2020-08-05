@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/cjdenio/replier/db"
 	"github.com/cjdenio/replier/util"
@@ -66,8 +67,19 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 			client := slack.New(user.Token)
 			slackUser, err := client.GetUserInfo(user.UserID)
 
+			var initialStartDate string
+			var initialEndDate string
+
+			if user.Reply.Start != (time.Time{}) {
+				initialStartDate = user.Reply.Start.Format("2006-01-02")
+			}
+
+			if user.Reply.End != (time.Time{}) {
+				initialEndDate = user.Reply.End.Format("2006-01-02")
+			}
+
 			if err != nil {
-				blocks = append(blocks, slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", "Doesn't have scope", false, false), nil, nil))
+				blocks = append(blocks, slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("_Psst!_ Wanna set start/end dates for your autoreply? <%s|Click here to add that permission!>", os.Getenv("HOST")+"/login"), false, false), nil, nil))
 			} else {
 				blocks = append(blocks, &util.HeaderBlock{
 					Type: "header",
@@ -79,8 +91,9 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 						Label:    slack.NewTextBlockObject("plain_text", "Start Date", false, false),
 						Optional: true,
 						Element: &slack.DatePickerBlockElement{
-							Type:     slack.METDatepicker,
-							ActionID: "start",
+							Type:        slack.METDatepicker,
+							ActionID:    "start",
+							InitialDate: initialStartDate,
 						},
 					},
 					&slack.InputBlock{
@@ -89,8 +102,9 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 						Label:    slack.NewTextBlockObject("plain_text", "End Date", false, false),
 						Optional: true,
 						Element: &slack.DatePickerBlockElement{
-							Type:     slack.METDatepicker,
-							ActionID: "end",
+							Type:        slack.METDatepicker,
+							ActionID:    "end",
+							InitialDate: initialEndDate,
 						},
 					}, slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("These dates will be evaluted in your timezone: *%s*", slackUser.TZ), false, false), nil, nil))
 			}
@@ -122,10 +136,20 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 			desiredMessage := parsed.View.State.Values["message"]["message"].Value
 			whitelist := parsed.View.State.Values["whitelist"]["whitelist"].SelectedUsers
 
-			fmt.Println(parsed.View.State.Values["start"]["start"].SelectedDate)
+			tz, err := util.GetUserTimezone(parsed.User.ID)
+			if err != nil {
+				fmt.Println(err)
+			}
 
 			db.SetUserMessage(parsed.User.ID, desiredMessage)
 			db.SetUserWhitelist(parsed.User.ID, whitelist)
+
+			loc, _ := time.LoadLocation(tz)
+
+			startDate, _ := time.ParseInLocation("2006-01-02", parsed.View.State.Values["start"]["start"].SelectedDate, loc)
+			endDate, _ := time.ParseInLocation("2006-01-02", parsed.View.State.Values["end"]["end"].SelectedDate, loc)
+
+			db.SetUserDates(startDate, endDate, parsed.User.ID)
 			util.UpdateAppHome(parsed.User.ID)
 		}
 	}
