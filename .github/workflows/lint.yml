@@ -9,4 +9,5 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - uses: actions/setup-go@v2
+      - run: go get -u golang.org/x/lint/golint
       - run: golint -set_exit_status ./...
