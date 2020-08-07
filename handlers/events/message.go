@@ -35,12 +35,12 @@ func HandleMessage(outer *slackevents.EventsAPICallbackEvent, inner *slackevents
 				client := slack.New(user.Token)
 				client.PostMessage(inner.Channel, slack.MsgOptionBlocks(
 					slack.NewSectionBlock(
-						slack.NewTextBlockObject("mrkdwn", user.Reply.Message, false, false),
+						slack.NewTextBlockObject("mrkdwn", util.TransformUserReply(user.Reply.Message, inner.User), false, false),
 						nil,
 						nil,
 					),
 					slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("<slack://app?team=%s&id=%s&tab=home|This is an automatic reply>", outer.TeamID, outer.APIAppID), false, false)),
-				), slack.MsgOptionText(user.Reply.Message, false))
+				), slack.MsgOptionText(util.TransformUserReply(user.Reply.Message, inner.User), false))
 				db.SetConversationLastPostedOn(inner.Channel, userID, time.Now())
 			}
 		}(v)
@@ -75,12 +75,12 @@ func HandleMessageNonDM(outer *slackevents.EventsAPICallbackEvent, inner *slacke
 				client := slack.New(user.Token)
 				client.PostMessage(inner.Channel, slack.MsgOptionBlocks(
 					slack.NewSectionBlock(
-						slack.NewTextBlockObject("mrkdwn", user.Reply.Message, false, false),
+						slack.NewTextBlockObject("mrkdwn", util.TransformUserReply(user.Reply.Message, inner.User), false, false),
 						nil,
 						nil,
 					),
 					slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("<slack://app?team=%s&id=%s&tab=home|This is an automatic reply>", outer.TeamID, outer.APIAppID), false, false)),
-				), slack.MsgOptionText(user.Reply.Message, false), slack.MsgOptionTS(timestampToReplyTo))
+				), slack.MsgOptionText(util.TransformUserReply(user.Reply.Message, inner.User), false), slack.MsgOptionTS(timestampToReplyTo))
 			}
 		}(v)
 	}

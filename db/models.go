@@ -1,6 +1,8 @@
 package db
 
-import "time"
+import (
+	"time"
+)
 
 // User represents a DB user.
 type User struct {
@@ -22,6 +24,16 @@ type UserReply struct {
 // ReplyShouldSend figures out whether or not the configured autoreply should be sent
 func (user User) ReplyShouldSend() bool {
 	if user.Reply.Message == "" || !user.Reply.Active {
+		return false
+	}
+
+	now := time.Now()
+
+	if user.Reply.Start != (time.Time{}) && user.Reply.Start.After(now) {
+		return false
+	}
+
+	if user.Reply.End != (time.Time{}) && user.Reply.End.Add(24*time.Hour).Before(now) {
 		return false
 	}
 

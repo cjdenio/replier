@@ -49,6 +49,7 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 					},
 					Optional: true,
 				},
+				slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", ":sparkles: *Fun fact:* if you put `@person` in the message, it'll get replaced by the actual message sender's name!", false, false)),
 				&slack.InputBlock{
 					Type:    slack.MBTInput,
 					BlockID: "whitelist",
@@ -61,7 +62,7 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 					},
 					Optional: true,
 				},
-				slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", "These people will _not_ receive your autoreply, even if it's enabled.", false, false)),
+				slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", "These people will _not_ receive your autoreply in DMs, even if it's enabled.", false, false)),
 			}
 
 			client := slack.New(user.Token)
@@ -106,7 +107,17 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 							ActionID:    "end",
 							InitialDate: initialEndDate,
 						},
-					}, slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("These dates will be evaluted in your timezone: *%s*", slackUser.TZ), false, false), nil, nil))
+					},
+					slack.NewContextBlock(
+						"",
+						slack.NewTextBlockObject(
+							"mrkdwn",
+							fmt.Sprintf("These dates will be evaluted in your timezone: *%s*", slackUser.TZ),
+							false,
+							false,
+						),
+					),
+					slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", ":information_source: You still need to enable the autoreply for it to be sent.", false, false), nil, nil))
 			}
 
 			botClient := slack.New(os.Getenv("SLACK_TOKEN"))

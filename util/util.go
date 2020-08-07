@@ -7,16 +7,19 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/cjdenio/replier/db"
 	"github.com/slack-go/slack"
 )
 
+// HeaderBlock represents a Slack header block
 type HeaderBlock struct {
 	Type string                 `json:"type"`
 	Text *slack.TextBlockObject `json:"text"`
 }
 
+// BlockType gets the block's type
 func (b HeaderBlock) BlockType() slack.MessageBlockType {
 	return slack.MessageBlockType(b.Type)
 }
@@ -43,7 +46,7 @@ func UpdateAppHome(userID string) error {
 				nil,
 				slack.NewAccessory(&slack.ButtonBlockElement{
 					Type:     slack.METButton,
-					Text:     slack.NewTextBlockObject("plain_text", ":bust_in_silhouette: Login", true, false),
+					Text:     slack.NewTextBlockObject("plain_text", ":bust_in_silhouette: Log in", true, false),
 					ActionID: "login",
 					URL:      os.Getenv("HOST") + "/login",
 				}),
@@ -62,6 +65,16 @@ func UpdateAppHome(userID string) error {
 		if user.Reply.Active {
 			replyActiveText = ":heavy_check_mark: Your autoreply is active! That means that people *will* receive it when they attempt to DM you."
 			replyToggleButtonText = "Turn Off"
+		}
+
+		if user.Reply.Active && user.Reply.Message == "" {
+			// No message
+			replyActiveText = ":warning: Your autoreply won't be sent until you set a message."
+		}
+
+		if user.Reply.Active && user.Reply.Message != "" && !user.ReplyShouldSend() {
+			// The time has not yet come
+			replyActiveText = ":warning: Your autoreply is active, though it won't be sent right now due to your start/end dates."
 		}
 
 		blocks = []slack.Block{
@@ -124,6 +137,7 @@ func IsInArray(array []string, value string) bool {
 	return false
 }
 
+// GetUserTimezone gets a Slack user's timezone.
 func GetUserTimezone(userID string) (string, error) {
 	user, err := db.GetUser(userID)
 	if err != nil {
@@ -137,4 +151,9 @@ func GetUserTimezone(userID string) (string, error) {
 	}
 
 	return slackUser.TZ, nil
+}
+
+// TransformUserReply transforms a user's reply
+func TransformUserReply(reply, userID string) string {
+	return strings.ReplaceAll(reply, "@person", fmt.Sprintf("<@%s>", userID))
 }

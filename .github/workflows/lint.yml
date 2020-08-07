@@ -1,0 +1,12 @@
+name: Lint
+on:
+  - push
+  - pull_request
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-go@v2
+      - run: golint -set_exit_status ./...
