@@ -33,7 +33,7 @@ func AddUser(user User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	_, err := DB.Database("replier").Collection("users").UpdateOne(ctx, bson.D{{Key: "user_id", Value: user.UserID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "user_id", Value: user.UserID}, {Key: "token", Value: user.Token}}}}, options.Update().SetUpsert(true))
+	_, err := DB.Database("replier").Collection("users").UpdateOne(ctx, bson.D{{Key: "user_id", Value: user.UserID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "user_id", Value: user.UserID}, {Key: "token", Value: user.Token}, {Key: "scopes", Value: user.Scopes}}}}, options.Update().SetUpsert(true))
 
 	return err
 }
@@ -81,12 +81,26 @@ func SetUserWhitelist(userID string, whitelist []string) error {
 	return nil
 }
 
+// SetUserDates sets a user's start/end dates
+func SetUserDates(start, end time.Time, userID string) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	DB.Database("replier").Collection("users").UpdateOne(ctx, bson.M{"user_id": userID}, bson.M{"$set": bson.M{"reply.start": start, "reply.end": end}})
+}
+
 // ToggleReplyActive toggle's the activity of a user's autoreply
 func ToggleReplyActive(userID string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	_, err := DB.Database("replier").Collection("users").UpdateOne(ctx, bson.D{{Key: "user_id", Value: userID}}, bson.M{"$bit": bson.M{"reply.active": bson.M{"xor": 1}}})
+	user, err := GetUser(userID)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	_, err = DB.Database("replier").Collection("users").UpdateOne(ctx, bson.D{{Key: "user_id", Value: userID}}, bson.M{"$set": bson.M{"reply.active": !user.Reply.Active}})
 	if err != nil {
 		fmt.Println(err)
 	}

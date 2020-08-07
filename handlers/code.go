@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/cjdenio/replier/db"
 	"github.com/cjdenio/replier/util"
@@ -22,6 +23,7 @@ func HandleOAuthCode(w http.ResponseWriter, r *http.Request) {
 	db.AddUser(db.User{
 		Token:  resp.AuthedUser.AccessToken,
 		UserID: resp.AuthedUser.ID,
+		Scopes: strings.Split(resp.AuthedUser.Scope, ","),
 	})
 	w.Header().Add("Content-Type", "text/html")
 	w.Write([]byte("<h1 style='font-family:sans-serif'>You're logged in!</h1><p style='font-family:sans-serif'>You can now head on back to Slack.</p>"))
