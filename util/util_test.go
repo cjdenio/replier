@@ -34,3 +34,7 @@ func TestIsInArray(t *testing.T) {
 	assert.True(t, IsInArray([]string{"i", "like", "go", "!"}, "go"))
 	assert.False(t, IsInArray([]string{"i", "like", "go", "!"}, "rust"))
 }
+
+func TestTransformUserReply(t *testing.T) {
+	assert.Equal(t, "Howdy, <@U12345678>! :wave:", TransformUserReply("Howdy, @person! :wave:", "U12345678"))
+}
