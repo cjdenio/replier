@@ -18,6 +18,7 @@ func main() {
 	http.HandleFunc("/slack/events", handlers.HandleEvents)
 	http.HandleFunc("/slack/interactivity", handlers.HandleInteractivity)
 	http.HandleFunc("/login", handlers.HandleLogin)
+	http.HandleFunc("/install", handlers.HandleInstall)
 	http.HandleFunc("/code", handlers.HandleOAuthCode)
 
 	err := http.ListenAndServe(":"+os.Getenv("PORT"), http.DefaultServeMux)

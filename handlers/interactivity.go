@@ -120,7 +120,12 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 					slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", ":information_source: You still need to enable the autoreply for it to be sent.", false, false), nil, nil))
 			}
 
-			botClient := slack.New(os.Getenv("SLACK_TOKEN"))
+			installation, err := db.GetInstallation(parsed.Team.ID)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			botClient := slack.New(installation.Token)
 			_, err = botClient.OpenView(parsed.TriggerID, slack.ModalViewRequest{
 				Type:       "modal",
 				Title:      slack.NewTextBlockObject("plain_text", "Edit Settings", false, false),
@@ -137,7 +142,7 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 			}
 		case "reply_toggle":
 			db.ToggleReplyActive(parsed.User.ID)
-			util.UpdateAppHome(parsed.User.ID)
+			util.UpdateAppHome(parsed.User.ID, parsed.Team.ID)
 		}
 	} else if parsed.Type == slack.InteractionTypeViewSubmission {
 		w.Write(nil)
@@ -161,7 +166,7 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 			endDate, _ := time.ParseInLocation("2006-01-02", parsed.View.State.Values["end"]["end"].SelectedDate, loc)
 
 			db.SetUserDates(startDate, endDate, parsed.User.ID)
-			util.UpdateAppHome(parsed.User.ID)
+			util.UpdateAppHome(parsed.User.ID, parsed.Team.ID)
 		}
 	}
 }

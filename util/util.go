@@ -25,8 +25,12 @@ func (b HeaderBlock) BlockType() slack.MessageBlockType {
 }
 
 // UpdateAppHome updates the App Home for the given user
-func UpdateAppHome(userID string) error {
-	client := slack.New(os.Getenv("SLACK_TOKEN"))
+func UpdateAppHome(userID, teamID string) error {
+	installation, err := db.GetInstallation(teamID)
+	if err != nil {
+		fmt.Println(err)
+	}
+	client := slack.New(installation.Token)
 
 	user, err := db.GetUser(userID)
 

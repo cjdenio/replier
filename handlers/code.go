@@ -20,13 +20,23 @@ func HandleOAuthCode(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Something went wrong. :("))
 		return
 	}
-	db.AddUser(db.User{
-		Token:  resp.AuthedUser.AccessToken,
-		UserID: resp.AuthedUser.ID,
-		Scopes: strings.Split(resp.AuthedUser.Scope, ","),
-	})
+	if resp.AuthedUser.AccessToken != "" {
+		db.AddUser(db.User{
+			Token:  resp.AuthedUser.AccessToken,
+			UserID: resp.AuthedUser.ID,
+			Scopes: strings.Split(resp.AuthedUser.Scope, ","),
+		})
+	}
+
+	if resp.AccessToken != "" {
+		db.AddInstallation(db.Installation{
+			Token:  resp.AccessToken,
+			Scopes: strings.Split(resp.Scope, ","),
+			TeamID: resp.Team.ID,
+		})
+	}
 	w.Header().Add("Content-Type", "text/html")
 	w.Write([]byte("<h1 style='font-family:sans-serif'>You're logged in!</h1><p style='font-family:sans-serif'>You can now head on back to Slack.</p>"))
 
-	util.UpdateAppHome(resp.AuthedUser.ID)
+	util.UpdateAppHome(resp.AuthedUser.ID, resp.Team.ID)
 }

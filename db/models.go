@@ -46,3 +46,10 @@ type Conversation struct {
 	ConversationID string `bson:"conversation_id"`
 	LastPostedOn   int64  `bson:"last_posted_on"`
 }
+
+// Installation represents an app installation
+type Installation struct {
+	TeamID string   `bson:"team_id"`
+	Scopes []string `bson:"scopes"`
+	Token  string   `bson:"token"`
+}

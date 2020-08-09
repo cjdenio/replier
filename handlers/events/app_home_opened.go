@@ -9,7 +9,7 @@ import (
 
 // HandleAppHomeOpened is fired when the user opens the App Home.
 func HandleAppHomeOpened(outer *slackevents.EventsAPICallbackEvent, inner *slackevents.AppHomeOpenedEvent) {
-	if err := util.UpdateAppHome(inner.User); err != nil {
+	if err := util.UpdateAppHome(inner.User, outer.TeamID); err != nil {
 		fmt.Println(err)
 	}
 }

@@ -28,6 +28,29 @@ func Connect() {
 	DB = client
 }
 
+// AddInstallation adds an installation to the database
+func AddInstallation(installation Installation) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	DB.Database("replier").Collection("installations").UpdateOne(ctx, bson.M{"team_id": installation.TeamID}, bson.M{"$set": installation}, options.Update().SetUpsert(true))
+}
+
+func GetInstallation(teamID string) (*Installation, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	var installation *Installation
+
+	err := DB.Database("replier").Collection("installations").FindOne(ctx, bson.M{"team_id": teamID}).Decode(&installation)
+
+	if err != nil {
+		return &Installation{}, err
+	}
+
+	return installation, nil
+}
+
 // AddUser adds a user
 func AddUser(user User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
