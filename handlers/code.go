@@ -39,4 +39,6 @@ func HandleOAuthCode(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("<h1 style='font-family:sans-serif'>You're logged in!</h1><p style='font-family:sans-serif'>You can now head on back to Slack.</p>"))
 
 	util.UpdateAppHome(resp.AuthedUser.ID, resp.Team.ID)
+
+	util.SendWelcomeMessage(resp.Team.ID, resp.AuthedUser.ID)
 }

@@ -35,7 +35,7 @@ func HandleEvents(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text")
 		w.Write([]byte(r.Challenge))
 	} else if slackEvent.Type == slackevents.CallbackEvent {
-		w.Write([]byte("cool"))
+		w.Write(nil)
 		innerEvent := slackEvent.InnerEvent
 		switch ev := innerEvent.Data.(type) {
 		case *slackevents.MessageEvent:

@@ -117,7 +117,7 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 							false,
 						),
 					),
-					slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", ":information_source: You still need to enable the autoreply for it to be sent.", false, false), nil, nil))
+					slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", ":information_source: You will still need to enable the autoreply for it to be sent.", false, false), nil, nil))
 			}
 
 			installation, err := db.GetInstallation(parsed.Team.ID)
