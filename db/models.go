@@ -10,6 +10,7 @@ type User struct {
 	UserID string    `bson:"user_id"`
 	Reply  UserReply `bson:"reply,omitempty"`
 	Scopes []string  `bson:"scopes"`
+	TeamID string    `bson:"team_id"`
 }
 
 // UserReply represents a user's chosen auto reply
@@ -52,4 +53,5 @@ type Installation struct {
 	TeamID string   `bson:"team_id"`
 	Scopes []string `bson:"scopes"`
 	Token  string   `bson:"token"`
+	BotID  string   `bson:"bot_id"`
 }

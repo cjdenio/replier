@@ -39,6 +39,11 @@ func HandleEvents(w http.ResponseWriter, r *http.Request) {
 		innerEvent := slackEvent.InnerEvent
 		switch ev := innerEvent.Data.(type) {
 		case *slackevents.MessageEvent:
+			// If this is a message sub-event, ignore it
+			if ev.SubType != "" {
+				return
+			}
+
 			if ev.ChannelType == "im" {
 				events.HandleMessage(slackEvent.Data.(*slackevents.EventsAPICallbackEvent), ev)
 			} else {

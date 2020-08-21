@@ -25,6 +25,7 @@ func HandleOAuthCode(w http.ResponseWriter, r *http.Request) {
 			Token:  resp.AuthedUser.AccessToken,
 			UserID: resp.AuthedUser.ID,
 			Scopes: strings.Split(resp.AuthedUser.Scope, ","),
+			TeamID: resp.Team.ID,
 		})
 	}
 
@@ -33,6 +34,7 @@ func HandleOAuthCode(w http.ResponseWriter, r *http.Request) {
 			Token:  resp.AccessToken,
 			Scopes: strings.Split(resp.Scope, ","),
 			TeamID: resp.Team.ID,
+			BotID:  resp.BotUserID,
 		})
 	}
 	w.Header().Add("Content-Type", "text/html")
