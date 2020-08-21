@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/cjdenio/replier/db"
 	"github.com/cjdenio/replier/handlers/events"
 	"github.com/cjdenio/replier/util"
 	"github.com/slack-go/slack/slackevents"
@@ -45,6 +46,11 @@ func HandleEvents(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if ev.ChannelType == "im" {
+				installation, _ := db.GetInstallation(slackEvent.TeamID)
+				if installation.BotID != "" && util.IsInArray(slackEvent.Data.(*slackevents.EventsAPICallbackEvent).AuthedUsers, installation.BotID) && ev.User != installation.BotID {
+					events.HandleBotDM(slackEvent.Data.(*slackevents.EventsAPICallbackEvent), ev)
+					return
+				}
 				events.HandleMessage(slackEvent.Data.(*slackevents.EventsAPICallbackEvent), ev)
 			} else {
 				events.HandleMessageNonDM(slackEvent.Data.(*slackevents.EventsAPICallbackEvent), ev)
