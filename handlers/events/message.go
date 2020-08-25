@@ -25,7 +25,7 @@ func HandleMessage(outer *slackevents.EventsAPICallbackEvent, inner *slackevents
 		go func(userID string) {
 			defer wg.Done()
 
-			if userID == inner.User || inner.BotID != "" {
+			if userID == inner.User || inner.BotID != "" || inner.User == "USLACKBOT" {
 				return
 			}
 			user, err := db.GetUser(userID)
@@ -60,7 +60,7 @@ func HandleMessageNonDM(outer *slackevents.EventsAPICallbackEvent, inner *slacke
 		go func(userID string) {
 			defer wg.Done()
 
-			if userID == inner.User {
+			if userID == inner.User || inner.BotID != "" {
 				return
 			}
 			user, err := db.GetUser(userID)
@@ -71,7 +71,7 @@ func HandleMessageNonDM(outer *slackevents.EventsAPICallbackEvent, inner *slacke
 				timestampToReplyTo = inner.TimeStamp
 			}
 
-			if err == nil && user.ReplyShouldSend() && strings.Contains(inner.Text, fmt.Sprintf("<@%s>", userID)) {
+			if err == nil && user.ReplyShouldSend() && strings.Contains(inner.Text, fmt.Sprintf("<@%s>", userID)) && !util.IsInArray(user.Reply.Whitelist, inner.User) {
 				client := slack.New(user.Token)
 				client.PostMessage(inner.Channel, slack.MsgOptionBlocks(
 					slack.NewSectionBlock(
