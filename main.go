@@ -7,21 +7,27 @@ import (
 
 	"github.com/cjdenio/replier/db"
 	"github.com/cjdenio/replier/handlers"
+	"github.com/cjdenio/replier/handlers/api"
+	"github.com/gorilla/mux"
 )
 
 func main() {
 	db.Connect()
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	r := mux.NewRouter()
+
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "https://github.com/cjdenio/replier", http.StatusMovedPermanently)
 	})
-	http.HandleFunc("/slack/events", handlers.HandleEvents)
-	http.HandleFunc("/slack/interactivity", handlers.HandleInteractivity)
-	http.HandleFunc("/login", handlers.HandleLogin)
-	http.HandleFunc("/install", handlers.HandleInstall)
-	http.HandleFunc("/code", handlers.HandleOAuthCode)
+	r.HandleFunc("/slack/events", handlers.HandleEvents).Methods("POST")
+	r.HandleFunc("/slack/interactivity", handlers.HandleInteractivity).Methods("POST")
+	r.HandleFunc("/login", handlers.HandleLogin)
+	r.HandleFunc("/install", handlers.HandleInstall)
+	r.HandleFunc("/code", handlers.HandleOAuthCode)
 
-	err := http.ListenAndServe(":"+os.Getenv("PORT"), http.DefaultServeMux)
+	r.HandleFunc("/api/reply", api.HandleAPIReplyGet).Methods("GET")
+
+	err := http.ListenAndServe(":"+os.Getenv("PORT"), r)
 
 	log.Fatal(err)
 }
