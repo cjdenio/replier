@@ -62,7 +62,7 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 					},
 					Optional: true,
 				},
-				slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", "These people will _not_ receive your autoreply in DMs, even if it's enabled.", false, false)),
+				slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", "These people will _not_ receive your autoreply in DMs or public channels, even if it's enabled.", false, false)),
 			}
 
 			client := slack.New(user.Token)
