@@ -17,13 +17,21 @@ func HandleEvents(w http.ResponseWriter, r *http.Request) {
 
 	if !util.VerifySlackRequest(r, buf) {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("Not verified :("))
+		_, err := w.Write([]byte("Not verified :("))
+		if err != nil {
+			log.Println(err)
+		}
 		return
 	}
 
 	slackEvent, err := slackevents.ParseEvent(buf, slackevents.OptionNoVerifyToken())
 	if err != nil {
-		log.Fatal(err)
+		w.WriteHeader(http.StatusBadRequest)
+		_, err := w.Write([]byte("Invalid event payload"))
+		if err != nil {
+			log.Println(err)
+		}
+		return
 	}
 
 	if slackEvent.Type == slackevents.URLVerification {
@@ -33,9 +41,15 @@ func HandleEvents(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 		w.Header().Set("Content-Type", "text")
-		w.Write([]byte(r.Challenge))
+		_, err = w.Write([]byte(r.Challenge))
+		if err != nil {
+			log.Println(err)
+		}
 	} else if slackEvent.Type == slackevents.CallbackEvent {
-		w.Write(nil)
+		_, err = w.Write(nil)
+		if err != nil {
+			log.Println(err)
+		}
 		innerEvent := slackEvent.InnerEvent
 		switch ev := innerEvent.Data.(type) {
 		case *slackevents.MessageEvent:

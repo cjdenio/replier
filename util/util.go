@@ -120,15 +120,15 @@ func UpdateAppHome(userID, teamID string) error {
 }
 
 // SendWelcomeMessage sends the specified user a welcome DM.
-func SendWelcomeMessage(teamID, userID string) {
+func SendWelcomeMessage(teamID, userID string) error {
 	installation, err := db.GetInstallation(teamID)
 	if err != nil {
-		return
+		return err
 	}
 
 	client := slack.New(installation.Token)
 
-	client.PostMessage(userID, slack.MsgOptionBlocks(
+	_, _, err = client.PostMessage(userID, slack.MsgOptionBlocks(
 		slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", "Hi there, and welcome to Replier! :wave: I make setting up autoreplies for Slack simple. :robot_face: Let me show you around real quick!", false, false), nil, nil),
 		slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", "To get started, head on over to my Home tab. From there you can set up your autoreply message, then turn it on! :sparkles:", false, false), nil, nil),
 		slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", "Once you've turned your autoreply on, people will see it when they either DM you or mention you in a group DM/private channel/public channel.", false, false), nil, nil),
@@ -136,6 +136,12 @@ func SendWelcomeMessage(teamID, userID string) {
 		slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", "Want to get more advanced? You can set start/end dates to make sure your autoreply automatically turns on at the right time! :calendar:", false, false), nil, nil),
 		slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", "_That's all from me!_ If you run into any issues, or have any feature requests, please feel free to email us at <mailto:caleb@deniosoftware.com|caleb@deniosoftware.com> or open an issue on the <https://github.com/cjdenio/replier|GitHub repository!>", false, false), nil, nil),
 	), slack.MsgOptionText("Welcome to Replier!", false))
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // VerifySlackRequest verifies a Slack request
@@ -145,7 +151,10 @@ func VerifySlackRequest(r *http.Request, body []byte) bool {
 	body = append([]byte(r.Header.Get("X-Slack-Request-Timestamp")+":"), body...)
 	body = append([]byte("v0:"), body...)
 
-	mac.Write(body)
+	_, err := mac.Write(body)
+	if err != nil {
+		return false
+	}
 
 	return hmac.Equal([]byte("v0="+hex.EncodeToString(mac.Sum(nil))), []byte(r.Header.Get("X-Slack-Signature")))
 }
