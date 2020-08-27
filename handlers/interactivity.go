@@ -152,7 +152,7 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 			})
 
 			if err != nil {
-				log.Fatal(err)
+				log.Println(err)
 			}
 		case "reply_toggle":
 			db.ToggleReplyActive(parsed.User.ID)

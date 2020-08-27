@@ -26,7 +26,12 @@ func HandleEvents(w http.ResponseWriter, r *http.Request) {
 
 	slackEvent, err := slackevents.ParseEvent(buf, slackevents.OptionNoVerifyToken())
 	if err != nil {
-		log.Fatal(err)
+		w.WriteHeader(http.StatusBadRequest)
+		_, err := w.Write([]byte("Invalid event payload"))
+		if err != nil {
+			log.Println(err)
+		}
+		return
 	}
 
 	if slackEvent.Type == slackevents.URLVerification {
