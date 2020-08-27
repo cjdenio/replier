@@ -22,16 +22,30 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 
 	if !util.VerifySlackRequest(r, buf) {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("Not verified :("))
+		_, err := w.Write([]byte("Not verified :("))
+		if err != nil {
+			log.Println(err)
+		}
 		return
 	}
 
 	var parsed slack.InteractionCallback
-	json.Unmarshal([]byte(r.Form.Get("payload")), &parsed)
+	err := json.Unmarshal([]byte(r.Form.Get("payload")), &parsed)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_, err := w.Write([]byte("Invalid JSON payload"))
+		if err != nil {
+			log.Println(err)
+		}
+		return
+	}
+
+	_, err = w.Write(nil)
+	if err != nil {
+		log.Println(err)
+	}
 
 	if parsed.Type == slack.InteractionTypeBlockActions {
-		w.Write(nil)
-
 		switch parsed.ActionCallback.BlockActions[0].ActionID {
 		case "edit_message":
 			user, _ := db.GetUser(parsed.User.ID)
@@ -142,11 +156,12 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 			}
 		case "reply_toggle":
 			db.ToggleReplyActive(parsed.User.ID)
-			util.UpdateAppHome(parsed.User.ID, parsed.Team.ID)
+			err := util.UpdateAppHome(parsed.User.ID, parsed.Team.ID)
+			if err != nil {
+				log.Println(err)
+			}
 		}
 	} else if parsed.Type == slack.InteractionTypeViewSubmission {
-		w.Write(nil)
-
 		switch parsed.View.CallbackID {
 		case "edit_message":
 			desiredMessage := parsed.View.State.Values["message"]["message"].Value
@@ -157,16 +172,28 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 				fmt.Println(err)
 			}
 
-			db.SetUserMessage(parsed.User.ID, desiredMessage)
-			db.SetUserWhitelist(parsed.User.ID, whitelist)
+			err = db.SetUserMessage(parsed.User.ID, desiredMessage)
+			if err != nil {
+				log.Println(err)
+			}
+			err = db.SetUserWhitelist(parsed.User.ID, whitelist)
+			if err != nil {
+				log.Println(err)
+			}
 
 			loc, _ := time.LoadLocation(tz)
 
 			startDate, _ := time.ParseInLocation("2006-01-02", parsed.View.State.Values["start"]["start"].SelectedDate, loc)
 			endDate, _ := time.ParseInLocation("2006-01-02", parsed.View.State.Values["end"]["end"].SelectedDate, loc)
 
-			db.SetUserDates(startDate, endDate, parsed.User.ID)
-			util.UpdateAppHome(parsed.User.ID, parsed.Team.ID)
+			err = db.SetUserDates(startDate, endDate, parsed.User.ID)
+			if err != nil {
+				log.Println(err)
+			}
+			err = util.UpdateAppHome(parsed.User.ID, parsed.Team.ID)
+			if err != nil {
+				log.Println(err)
+			}
 		}
 	}
 }

@@ -67,5 +67,8 @@ func HandleOAuthCode(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	util.SendWelcomeMessage(resp.Team.ID, resp.AuthedUser.ID)
+	err = util.SendWelcomeMessage(resp.Team.ID, resp.AuthedUser.ID)
+	if err != nil {
+		log.Println(err)
+	}
 }
