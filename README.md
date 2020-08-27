@@ -3,6 +3,7 @@
 
 ![Test](https://github.com/cjdenio/replier/workflows/Test/badge.svg)
 ![Format](https://github.com/cjdenio/replier/workflows/Format/badge.svg)
+![golangci-lint](https://github.com/cjdenio/replier/workflows/golangci-lint/badge.svg)
 
 An autoreply bot originally for the [Hack Club](https://hackclub.com) Slack, now available for your workspace! Built using Go, MongoDB, and Docker.
 

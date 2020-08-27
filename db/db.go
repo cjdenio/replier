@@ -29,13 +29,20 @@ func Connect() {
 }
 
 // AddInstallation adds an installation to the database
-func AddInstallation(installation Installation) {
+func AddInstallation(installation Installation) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	DB.Database("replier").Collection("installations").UpdateOne(ctx, bson.M{"team_id": installation.TeamID}, bson.M{"$set": installation}, options.Update().SetUpsert(true))
+	_, err := DB.Database("replier").Collection("installations").UpdateOne(ctx, bson.M{"team_id": installation.TeamID}, bson.M{"$set": installation}, options.Update().SetUpsert(true))
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
+// GetInstallation gets an installation
 func GetInstallation(teamID string) (*Installation, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -97,19 +104,17 @@ func SetUserWhitelist(userID string, whitelist []string) error {
 
 	_, err := DB.Database("replier").Collection("users").UpdateOne(ctx, bson.D{{Key: "user_id", Value: userID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "reply.whitelist", Value: whitelist}}}})
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // SetUserDates sets a user's start/end dates
-func SetUserDates(start, end time.Time, userID string) {
+func SetUserDates(start, end time.Time, userID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	DB.Database("replier").Collection("users").UpdateOne(ctx, bson.M{"user_id": userID}, bson.M{"$set": bson.M{"reply.start": start, "reply.end": end}})
+	_, err := DB.Database("replier").Collection("users").UpdateOne(ctx, bson.M{"user_id": userID}, bson.M{"$set": bson.M{"reply.start": start, "reply.end": end}})
+
+	return err
 }
 
 // ToggleReplyActive toggle's the activity of a user's autoreply
