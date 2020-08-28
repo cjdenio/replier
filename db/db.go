@@ -2,6 +2,8 @@ package db
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"os"
@@ -81,6 +83,57 @@ func GetUser(userID string) (*User, error) {
 		return &User{}, err
 	}
 	return result, nil
+}
+
+// GetUserByToken gets a User, provided an API token
+func GetUserByToken(token string) (*User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	var result *User
+
+	err := DB.Database("replier").Collection("users").FindOne(ctx, bson.D{{Key: "api_token", Value: token}}).Decode(&result)
+
+	if err != nil {
+		return &User{}, err
+	}
+	return result, nil
+}
+
+// GetUserAPIToken gets a user's API token, creating it if necessary.
+func GetUserAPIToken(userID string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	var result *User
+
+	err := DB.Database("replier").Collection("users").FindOne(ctx, bson.D{{Key: "user_id", Value: userID}}).Decode(&result)
+
+	if err != nil {
+		return "", err
+	}
+
+	if result.APIToken == "" {
+		token := generateAPIToken()
+		setUserAPIToken(userID, token)
+		return token, nil
+	}
+	return result.APIToken, nil
+}
+
+func setUserAPIToken(userID, token string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	_, err := DB.Database("replier").Collection("users").UpdateOne(ctx, bson.M{"user_id": userID}, bson.M{"$set": bson.M{"api_token": token}})
+
+	return err
+}
+
+func generateAPIToken() string {
+	token := make([]byte, 16)
+	rand.Read(token)
+	return hex.EncodeToString(token)
 }
 
 // SetUserMessage sets a users message

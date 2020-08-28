@@ -6,20 +6,21 @@ import (
 
 // User represents a DB user.
 type User struct {
-	Token  string    `bson:"token"`
-	UserID string    `bson:"user_id"`
-	Reply  UserReply `bson:"reply,omitempty"`
-	Scopes []string  `bson:"scopes"`
-	TeamID string    `bson:"team_id"`
+	Token    string    `bson:"token"`
+	UserID   string    `bson:"user_id"`
+	Reply    UserReply `bson:"reply,omitempty"`
+	Scopes   []string  `bson:"scopes"`
+	TeamID   string    `bson:"team_id"`
+	APIToken string    `bson:"api_token"`
 }
 
 // UserReply represents a user's chosen auto reply
 type UserReply struct {
-	Message   string    `bson:"message"`
-	Active    bool      `bson:"active"`
-	Whitelist []string  `bson:"whitelist"`
-	Start     time.Time `bson:"start"`
-	End       time.Time `bson:"end"`
+	Message   string    `bson:"message" json:"message"`
+	Active    bool      `bson:"active" json:"active"`
+	Whitelist []string  `bson:"whitelist" json:"whitelist"`
+	Start     time.Time `bson:"start" json:"start"`
+	End       time.Time `bson:"end" json:"end"`
 }
 
 // ReplyShouldSend figures out whether or not the configured autoreply should be sent
