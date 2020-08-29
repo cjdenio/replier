@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"time"
 
 	"github.com/cjdenio/replier/db"
@@ -79,61 +78,6 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 				slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", "These people will _not_ receive your autoreply in DMs or public channels, even if it's enabled.", false, false)),
 			}
 
-			client := slack.New(user.Token)
-			slackUser, err := client.GetUserInfo(user.UserID)
-
-			var initialStartDate string
-			var initialEndDate string
-
-			if user.Reply.Start != (time.Time{}) {
-				initialStartDate = user.Reply.Start.Format("2006-01-02")
-			}
-
-			if user.Reply.End != (time.Time{}) {
-				initialEndDate = user.Reply.End.Format("2006-01-02")
-			}
-
-			if err != nil {
-				blocks = append(blocks, slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("_Psst!_ Wanna set start/end dates for your autoreply? <%s|Click here to add that permission!>", os.Getenv("HOST")+"/login"), false, false), nil, nil))
-			} else {
-				blocks = append(blocks, &util.HeaderBlock{
-					Type: "header",
-					Text: slack.NewTextBlockObject("plain_text", ":calendar: Dates", true, false),
-				},
-					&slack.InputBlock{
-						Type:     slack.MBTInput,
-						BlockID:  "start",
-						Label:    slack.NewTextBlockObject("plain_text", "Start Date", false, false),
-						Optional: true,
-						Element: &slack.DatePickerBlockElement{
-							Type:        slack.METDatepicker,
-							ActionID:    "start",
-							InitialDate: initialStartDate,
-						},
-					},
-					&slack.InputBlock{
-						Type:     slack.MBTInput,
-						BlockID:  "end",
-						Label:    slack.NewTextBlockObject("plain_text", "End Date", false, false),
-						Optional: true,
-						Element: &slack.DatePickerBlockElement{
-							Type:        slack.METDatepicker,
-							ActionID:    "end",
-							InitialDate: initialEndDate,
-						},
-					},
-					slack.NewContextBlock(
-						"",
-						slack.NewTextBlockObject(
-							"mrkdwn",
-							fmt.Sprintf("These dates will be evaluted in your timezone: *%s*", slackUser.TZ),
-							false,
-							false,
-						),
-					),
-					slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", ":information_source: You will still need to enable the autoreply for it to be sent.", false, false), nil, nil))
-			}
-
 			installation, err := db.GetInstallation(parsed.Team.ID)
 			if err != nil {
 				fmt.Println(err)
@@ -157,6 +101,33 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 		case "reply_toggle":
 			db.ToggleReplyActive(parsed.User.ID)
 			err := util.UpdateAppHome(parsed.User.ID, parsed.Team.ID)
+			if err != nil {
+				log.Println(err)
+			}
+		case "mode-manual":
+			err = db.SetReplyMode(parsed.User.ID, db.ReplyModeManual)
+			if err != nil {
+				log.Println(err)
+			}
+			err = util.UpdateAppHome(parsed.User.ID, parsed.Team.ID)
+			if err != nil {
+				log.Println(err)
+			}
+		case "mode-date":
+			err = db.SetReplyMode(parsed.User.ID, db.ReplyModeDate)
+			if err != nil {
+				log.Println(err)
+			}
+			err = util.UpdateAppHome(parsed.User.ID, parsed.Team.ID)
+			if err != nil {
+				log.Println(err)
+			}
+		case "mode-presence":
+			err = db.SetReplyMode(parsed.User.ID, db.ReplyModePresence)
+			if err != nil {
+				log.Println(err)
+			}
+			err = util.UpdateAppHome(parsed.User.ID, parsed.Team.ID)
 			if err != nil {
 				log.Println(err)
 			}

@@ -117,6 +117,16 @@ func SetUserDates(start, end time.Time, userID string) error {
 	return err
 }
 
+// SetReplyMode sets a user's reply mode
+func SetReplyMode(userID string, mode ReplyMode) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	_, err := DB.Database("replier").Collection("users").UpdateOne(ctx, bson.M{"user_id": userID}, bson.M{"$set": bson.M{"reply.mode": mode}})
+
+	return err
+}
+
 // ToggleReplyActive toggle's the activity of a user's autoreply
 func ToggleReplyActive(userID string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
