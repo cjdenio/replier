@@ -26,6 +26,10 @@ func Connect() {
 		log.Fatal(err)
 	}
 	DB = client
+
+	if err = migrate(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // AddInstallation adds an installation to the database
@@ -63,7 +67,7 @@ func AddUser(user User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	_, err := DB.Database("replier").Collection("users").UpdateOne(ctx, bson.D{{Key: "user_id", Value: user.UserID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "user_id", Value: user.UserID}, {Key: "token", Value: user.Token}, {Key: "scopes", Value: user.Scopes}, {Key: "team_id", Value: user.TeamID}}}}, options.Update().SetUpsert(true))
+	_, err := DB.Database("replier").Collection("users").UpdateOne(ctx, bson.D{{Key: "user_id", Value: user.UserID}}, bson.D{{Key: "$set", Value: bson.D{{Key: "user_id", Value: user.UserID}, {Key: "token", Value: user.Token}, {Key: "scopes", Value: user.Scopes}, {Key: "team_id", Value: user.TeamID}}}, {Key: "$setOnInsert", Value: bson.M{"reply.mode": ReplyModeManual}}}, options.Update().SetUpsert(true))
 
 	return err
 }
@@ -113,6 +117,16 @@ func SetUserDates(start, end time.Time, userID string) error {
 	defer cancel()
 
 	_, err := DB.Database("replier").Collection("users").UpdateOne(ctx, bson.M{"user_id": userID}, bson.M{"$set": bson.M{"reply.start": start, "reply.end": end}})
+
+	return err
+}
+
+// SetReplyMode sets a user's reply mode
+func SetReplyMode(userID string, mode ReplyMode) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	_, err := DB.Database("replier").Collection("users").UpdateOne(ctx, bson.M{"user_id": userID}, bson.M{"$set": bson.M{"reply.mode": mode}})
 
 	return err
 }

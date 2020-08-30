@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"time"
 
 	"github.com/cjdenio/replier/db"
@@ -40,12 +39,12 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = w.Write(nil)
-	if err != nil {
-		log.Println(err)
-	}
-
 	if parsed.Type == slack.InteractionTypeBlockActions {
+		_, err = w.Write(nil)
+		if err != nil {
+			log.Println(err)
+		}
+
 		switch parsed.ActionCallback.BlockActions[0].ActionID {
 		case "edit_message":
 			user, _ := db.GetUser(parsed.User.ID)
@@ -79,61 +78,6 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 				slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", "These people will _not_ receive your autoreply in DMs or public channels, even if it's enabled.", false, false)),
 			}
 
-			client := slack.New(user.Token)
-			slackUser, err := client.GetUserInfo(user.UserID)
-
-			var initialStartDate string
-			var initialEndDate string
-
-			if user.Reply.Start != (time.Time{}) {
-				initialStartDate = user.Reply.Start.Format("2006-01-02")
-			}
-
-			if user.Reply.End != (time.Time{}) {
-				initialEndDate = user.Reply.End.Format("2006-01-02")
-			}
-
-			if err != nil {
-				blocks = append(blocks, slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("_Psst!_ Wanna set start/end dates for your autoreply? <%s|Click here to add that permission!>", os.Getenv("HOST")+"/login"), false, false), nil, nil))
-			} else {
-				blocks = append(blocks, &util.HeaderBlock{
-					Type: "header",
-					Text: slack.NewTextBlockObject("plain_text", ":calendar: Dates", true, false),
-				},
-					&slack.InputBlock{
-						Type:     slack.MBTInput,
-						BlockID:  "start",
-						Label:    slack.NewTextBlockObject("plain_text", "Start Date", false, false),
-						Optional: true,
-						Element: &slack.DatePickerBlockElement{
-							Type:        slack.METDatepicker,
-							ActionID:    "start",
-							InitialDate: initialStartDate,
-						},
-					},
-					&slack.InputBlock{
-						Type:     slack.MBTInput,
-						BlockID:  "end",
-						Label:    slack.NewTextBlockObject("plain_text", "End Date", false, false),
-						Optional: true,
-						Element: &slack.DatePickerBlockElement{
-							Type:        slack.METDatepicker,
-							ActionID:    "end",
-							InitialDate: initialEndDate,
-						},
-					},
-					slack.NewContextBlock(
-						"",
-						slack.NewTextBlockObject(
-							"mrkdwn",
-							fmt.Sprintf("These dates will be evaluted in your timezone: *%s*", slackUser.TZ),
-							false,
-							false,
-						),
-					),
-					slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", ":information_source: You will still need to enable the autoreply for it to be sent.", false, false), nil, nil))
-			}
-
 			installation, err := db.GetInstallation(parsed.Team.ID)
 			if err != nil {
 				fmt.Println(err)
@@ -160,17 +104,85 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Println(err)
 			}
+		case "mode-manual":
+			err = db.SetReplyMode(parsed.User.ID, db.ReplyModeManual)
+			if err != nil {
+				log.Println(err)
+			}
+			err = util.UpdateAppHome(parsed.User.ID, parsed.Team.ID)
+			if err != nil {
+				log.Println(err)
+			}
+		case "mode-date":
+			installation, _ := db.GetInstallation(parsed.Team.ID)
+			user, _ := db.GetUser(parsed.User.ID)
+			client := slack.New(installation.Token)
+
+			startDate := user.Reply.Start.Format("2006-01-02")
+			if (user.Reply.Start == time.Time{}) {
+				startDate = ""
+			}
+			endDate := user.Reply.End.Format("2006-01-02")
+			if (user.Reply.End == time.Time{}) {
+				endDate = ""
+			}
+
+			_, err = client.OpenView(parsed.TriggerID, slack.ModalViewRequest{
+				Type:       "modal",
+				Title:      slack.NewTextBlockObject("plain_text", "Date Range", false, false),
+				CallbackID: "date_range",
+				Blocks: slack.Blocks{
+					BlockSet: []slack.Block{
+						slack.InputBlock{
+							Type:     "input",
+							BlockID:  "start",
+							Optional: true,
+							Label:    slack.NewTextBlockObject("plain_text", "Start Date", false, false),
+							Element: slack.DatePickerBlockElement{
+								Type:        "datepicker",
+								InitialDate: startDate,
+								ActionID:    "start",
+							},
+						},
+						slack.InputBlock{
+							Type:     "input",
+							BlockID:  "end",
+							Optional: true,
+							Label:    slack.NewTextBlockObject("plain_text", "End Date", false, false),
+							Element: slack.DatePickerBlockElement{
+								Type:        "datepicker",
+								InitialDate: endDate,
+								ActionID:    "end",
+							},
+						},
+					},
+				},
+				Close:  slack.NewTextBlockObject("plain_text", "Cancel", false, false),
+				Submit: slack.NewTextBlockObject("plain_text", "Save", false, false),
+			})
+			if err != nil {
+				log.Println(err)
+			}
+		case "mode-presence":
+			err = db.SetReplyMode(parsed.User.ID, db.ReplyModePresence)
+			if err != nil {
+				log.Println(err)
+			}
+			err = util.UpdateAppHome(parsed.User.ID, parsed.Team.ID)
+			if err != nil {
+				log.Println(err)
+			}
 		}
 	} else if parsed.Type == slack.InteractionTypeViewSubmission {
 		switch parsed.View.CallbackID {
 		case "edit_message":
+			_, err = w.Write(nil)
+			if err != nil {
+				log.Println(err)
+			}
+
 			desiredMessage := parsed.View.State.Values["message"]["message"].Value
 			whitelist := parsed.View.State.Values["whitelist"]["whitelist"].SelectedUsers
-
-			tz, err := util.GetUserTimezone(parsed.User.ID)
-			if err != nil {
-				fmt.Println(err)
-			}
 
 			err = db.SetUserMessage(parsed.User.ID, desiredMessage)
 			if err != nil {
@@ -181,19 +193,57 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 			}
 
-			loc, _ := time.LoadLocation(tz)
-
-			startDate, _ := time.ParseInLocation("2006-01-02", parsed.View.State.Values["start"]["start"].SelectedDate, loc)
-			endDate, _ := time.ParseInLocation("2006-01-02", parsed.View.State.Values["end"]["end"].SelectedDate, loc)
-
-			err = db.SetUserDates(startDate, endDate, parsed.User.ID)
-			if err != nil {
-				log.Println(err)
-			}
 			err = util.UpdateAppHome(parsed.User.ID, parsed.Team.ID)
 			if err != nil {
 				log.Println(err)
 			}
+		case "date_range":
+			start := parsed.View.State.Values["start"]["start"].SelectedDate
+			end := parsed.View.State.Values["end"]["end"].SelectedDate
+
+			if start == "" && end == "" {
+				w.Header().Add("Content-Type", "application/json")
+				response, _ := json.Marshal(ModalErrorResponse{
+					ResponseAction: "errors",
+					Errors: map[string]string{
+						"start": "Please select either a start date or an end date.",
+					},
+				})
+				_, err = w.Write(response)
+				if err != nil {
+					log.Println(err)
+				}
+			} else {
+				tz, err := util.GetUserTimezone(parsed.User.ID)
+				if err != nil {
+					log.Println(err)
+				}
+
+				loc, _ := time.LoadLocation(tz)
+
+				startDate, _ := time.ParseInLocation("2006-01-02", start, loc)
+				endDate, _ := time.ParseInLocation("2006-01-02", end, loc)
+
+				err = db.SetUserDates(startDate, endDate, parsed.User.ID)
+				if err != nil {
+					log.Println(err)
+				}
+
+				err = db.SetReplyMode(parsed.User.ID, db.ReplyModeDate)
+				if err != nil {
+					log.Println(err)
+				}
+
+				err = util.UpdateAppHome(parsed.User.ID, parsed.Team.ID)
+				if err != nil {
+					log.Println(err)
+				}
+			}
 		}
 	}
+}
+
+type ModalErrorResponse struct {
+	ResponseAction string            `json:"response_action"`
+	Errors         map[string]string `json:"errors"`
 }

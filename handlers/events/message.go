@@ -77,7 +77,7 @@ func HandleMessageNonDM(outer *slackevents.EventsAPICallbackEvent, inner *slacke
 				timestampToReplyTo = inner.TimeStamp
 			}
 
-			if err == nil && user.ReplyShouldSend() && strings.Contains(inner.Text, fmt.Sprintf("<@%s>", userID)) && !util.IsInArray(user.Reply.Whitelist, inner.User) {
+			if err == nil && strings.Contains(inner.Text, fmt.Sprintf("<@%s>", userID)) && user.ReplyShouldSend() && !util.IsInArray(user.Reply.Whitelist, inner.User) {
 				client := slack.New(user.Token)
 				_, _, err = client.PostMessage(inner.Channel, slack.MsgOptionBlocks(
 					slack.NewSectionBlock(
