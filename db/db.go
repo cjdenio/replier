@@ -119,7 +119,10 @@ func GetUserAPIToken(userID string) (string, error) {
 
 	if result.APIToken == "" {
 		token := generateAPIToken()
-		setUserAPIToken(userID, token)
+		err = setUserAPIToken(userID, token)
+		if err != nil {
+			log.Println(err)
+		}
 		return token, nil
 	}
 	return result.APIToken, nil
@@ -136,7 +139,10 @@ func setUserAPIToken(userID, token string) error {
 
 func generateAPIToken() string {
 	token := make([]byte, 16)
-	rand.Read(token)
+	_, err := rand.Read(token)
+	if err != nil {
+		log.Println(err)
+	}
 	return hex.EncodeToString(token)
 }
 

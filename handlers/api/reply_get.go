@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/cjdenio/replier/db"
@@ -13,16 +14,25 @@ func HandleAPIReplyGet(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("{\"ok\":false}"))
+		_, err = w.Write([]byte("{\"ok\":false}"))
+		if err != nil {
+			log.Println(err)
+		}
 		return
 	}
 
 	encoded, err := json.Marshal(user.Reply)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\"ok\":false}"))
+		_, err = w.Write([]byte("{\"ok\":false}"))
+		if err != nil {
+			log.Println(err)
+		}
 		return
 	}
 
-	w.Write(encoded)
+	_, err = w.Write(encoded)
+	if err != nil {
+		log.Println(err)
+	}
 }
