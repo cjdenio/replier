@@ -127,7 +127,7 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 				endDate = ""
 			}
 
-			client.OpenView(parsed.TriggerID, slack.ModalViewRequest{
+			_, err = client.OpenView(parsed.TriggerID, slack.ModalViewRequest{
 				Type:       "modal",
 				Title:      slack.NewTextBlockObject("plain_text", "Date Range", false, false),
 				CallbackID: "date_range",
@@ -160,6 +160,9 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 				Close:  slack.NewTextBlockObject("plain_text", "Cancel", false, false),
 				Submit: slack.NewTextBlockObject("plain_text", "Save", false, false),
 			})
+			if err != nil {
+				log.Println(err)
+			}
 		case "mode-presence":
 			err = db.SetReplyMode(parsed.User.ID, db.ReplyModePresence)
 			if err != nil {
@@ -181,11 +184,6 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 			desiredMessage := parsed.View.State.Values["message"]["message"].Value
 			whitelist := parsed.View.State.Values["whitelist"]["whitelist"].SelectedUsers
 
-			tz, err := util.GetUserTimezone(parsed.User.ID)
-			if err != nil {
-				fmt.Println(err)
-			}
-
 			err = db.SetUserMessage(parsed.User.ID, desiredMessage)
 			if err != nil {
 				log.Println(err)
@@ -195,15 +193,6 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 			}
 
-			loc, _ := time.LoadLocation(tz)
-
-			startDate, _ := time.ParseInLocation("2006-01-02", parsed.View.State.Values["start"]["start"].SelectedDate, loc)
-			endDate, _ := time.ParseInLocation("2006-01-02", parsed.View.State.Values["end"]["end"].SelectedDate, loc)
-
-			err = db.SetUserDates(startDate, endDate, parsed.User.ID)
-			if err != nil {
-				log.Println(err)
-			}
 			err = util.UpdateAppHome(parsed.User.ID, parsed.Team.ID)
 			if err != nil {
 				log.Println(err)
@@ -221,6 +210,31 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 					},
 				})
 				_, err = w.Write(response)
+				if err != nil {
+					log.Println(err)
+				}
+			} else {
+				tz, err := util.GetUserTimezone(parsed.User.ID)
+				if err != nil {
+					log.Println(err)
+				}
+
+				loc, _ := time.LoadLocation(tz)
+
+				startDate, _ := time.ParseInLocation("2006-01-02", start, loc)
+				endDate, _ := time.ParseInLocation("2006-01-02", end, loc)
+
+				err = db.SetUserDates(startDate, endDate, parsed.User.ID)
+				if err != nil {
+					log.Println(err)
+				}
+
+				err = db.SetReplyMode(parsed.User.ID, db.ReplyModeDate)
+				if err != nil {
+					log.Println(err)
+				}
+
+				err = util.UpdateAppHome(parsed.User.ID, parsed.Team.ID)
 				if err != nil {
 					log.Println(err)
 				}

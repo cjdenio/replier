@@ -18,7 +18,7 @@ const (
 type User struct {
 	Token  string    `bson:"token"`
 	UserID string    `bson:"user_id"`
-	Reply  UserReply `bson:"reply,omitempty"`
+	Reply  UserReply `bson:"reply"`
 	Scopes []string  `bson:"scopes"`
 	TeamID string    `bson:"team_id"`
 }
