@@ -2,13 +2,23 @@ package db
 
 import (
 	"time"
+
+	"github.com/slack-go/slack"
+)
+
+type ReplyMode string
+
+const (
+	ReplyModeManual   ReplyMode = "manual"
+	ReplyModeDate     ReplyMode = "date"
+	ReplyModePresence ReplyMode = "presence"
 )
 
 // User represents a DB user.
 type User struct {
 	Token    string    `bson:"token"`
 	UserID   string    `bson:"user_id"`
-	Reply    UserReply `bson:"reply,omitempty"`
+	Reply    UserReply `bson:"reply"`
 	Scopes   []string  `bson:"scopes"`
 	TeamID   string    `bson:"team_id"`
 	APIToken string    `bson:"api_token"`
@@ -21,22 +31,37 @@ type UserReply struct {
 	Whitelist []string  `bson:"whitelist" json:"whitelist"`
 	Start     time.Time `bson:"start" json:"start"`
 	End       time.Time `bson:"end" json:"end"`
+	Mode      ReplyMode `bson:"mode" json:"mode"`
 }
 
 // ReplyShouldSend figures out whether or not the configured autoreply should be sent
 func (user User) ReplyShouldSend() bool {
-	if user.Reply.Message == "" || !user.Reply.Active {
+	if user.Reply.Message == "" {
 		return false
 	}
 
-	now := time.Now()
+	switch user.Reply.Mode {
+	case ReplyModeManual:
+		return user.Reply.Active
+	case ReplyModeDate:
+		now := time.Now()
 
-	if user.Reply.Start != (time.Time{}) && user.Reply.Start.After(now) {
-		return false
-	}
+		if user.Reply.Start != (time.Time{}) && user.Reply.Start.After(now) {
+			return false
+		}
 
-	if user.Reply.End != (time.Time{}) && user.Reply.End.Add(24*time.Hour).Before(now) {
-		return false
+		if user.Reply.End != (time.Time{}) && user.Reply.End.Add(24*time.Hour).Before(now) {
+			return false
+		}
+	case ReplyModePresence:
+		client := slack.New(user.Token)
+		if presence, err := client.GetUserPresence(user.UserID); err != nil {
+			return false
+		} else if presence.Presence == "active" {
+			return false
+		} else if presence.Presence == "away" {
+			return true
+		}
 	}
 
 	return true
