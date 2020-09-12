@@ -203,8 +203,8 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 
 			if start == "" && end == "" {
 				w.Header().Add("Content-Type", "application/json")
-				response, _ := json.Marshal(ModalErrorResponse{
-					ResponseAction: "errors",
+				response, _ := json.Marshal(slack.ViewSubmissionResponse{
+					ResponseAction: slack.RAErrors,
 					Errors: map[string]string{
 						"start": "Please select either a start date or an end date.",
 					},
@@ -241,9 +241,4 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-}
-
-type ModalErrorResponse struct {
-	ResponseAction string            `json:"response_action"`
-	Errors         map[string]string `json:"errors"`
 }
