@@ -8,6 +8,21 @@ import (
 	"github.com/slack-go/slack"
 )
 
+// NewInputBlock is an input block that contains the DispatchAction field
+type NewInputBlock struct {
+	Type           slack.MessageBlockType `json:"type"`
+	BlockID        string                 `json:"block_id,omitempty"`
+	Label          *slack.TextBlockObject `json:"label"`
+	Element        slack.BlockElement     `json:"element"`
+	Hint           *slack.TextBlockObject `json:"hint,omitempty"`
+	Optional       bool                   `json:"optional,omitempty"`
+	DispatchAction bool                   `json:"dispatch_action"`
+}
+
+func (s NewInputBlock) BlockType() slack.MessageBlockType {
+	return s.Type
+}
+
 func UpdateAppHome(userID, teamID string) error {
 	installation, err := db.GetInstallation(teamID)
 	if err != nil {
@@ -45,12 +60,6 @@ func UpdateAppHome(userID, teamID string) error {
 			),
 		}
 	} else {
-		replyMessage := user.Reply.Message
-
-		if replyMessage == "" {
-			replyMessage = "*You haven't set up an autoreply message yet.* Click that button over there :arrow_right: to get started!"
-		}
-
 		replyActive := user.ReplyShouldSend()
 
 		replyActiveText := ":x: Your autoreply is *off*."
@@ -85,16 +94,20 @@ func UpdateAppHome(userID, teamID string) error {
 		}
 
 		blocks = []slack.Block{
-			slack.NewSectionBlock(
-				slack.NewTextBlockObject("mrkdwn", "*Your autoreply message:*", false, false),
-				nil,
-				nil,
-			),
-			slack.NewSectionBlock(
-				slack.NewTextBlockObject("mrkdwn", replyMessage, false, false),
-				nil,
-				slack.NewAccessory(slack.NewButtonBlockElement("edit_message", "", slack.NewTextBlockObject("plain_text", ":pencil: Edit", true, false))),
-			),
+			&NewInputBlock{
+				Type:           slack.MBTInput,
+				Label:          slack.NewTextBlockObject("plain_text", "Your autoreply message", false, false),
+				BlockID:        "message",
+				DispatchAction: true,
+				Element: &slack.PlainTextInputBlockElement{
+					Type:         slack.METPlainTextInput,
+					Multiline:    true,
+					ActionID:     "message",
+					InitialValue: user.Reply.Message,
+				},
+			},
+			slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", ":sparkles: *Fun fact:* if you put `@person` in the message, it'll get replaced by the actual message sender's name!", false, false)),
+			slack.NewActionBlock("", slack.NewButtonBlockElement("edit_message", "", slack.NewTextBlockObject("plain_text", ":gear: Settings", true, false))),
 			slack.NewDividerBlock(),
 			slack.NewActionBlock("", slack.NewButtonBlockElement("mode-manual", "", slack.NewTextBlockObject("plain_text", "Manual", false, false)).WithStyle(buttonStyles["manual"]), slack.NewButtonBlockElement("mode-date", "", slack.NewTextBlockObject("plain_text", "Date Range", false, false)).WithStyle(buttonStyles["date"]), slack.NewButtonBlockElement("mode-presence", "", slack.NewTextBlockObject("plain_text", "Presence", false, false)).WithStyle(buttonStyles["presence"])),
 			slack.NewSectionBlock(

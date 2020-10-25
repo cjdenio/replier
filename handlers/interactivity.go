@@ -52,19 +52,6 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 			blocks := []slack.Block{
 				&slack.InputBlock{
 					Type:    slack.MBTInput,
-					BlockID: "message",
-					Label:   slack.NewTextBlockObject("plain_text", "Message", false, false),
-					Element: &slack.PlainTextInputBlockElement{
-						Type:         slack.METPlainTextInput,
-						ActionID:     "message",
-						Multiline:    true,
-						InitialValue: user.Reply.Message,
-					},
-					Optional: true,
-				},
-				slack.NewContextBlock("", slack.NewTextBlockObject("mrkdwn", ":sparkles: *Fun fact:* if you put `@person` in the message, it'll get replaced by the actual message sender's name!", false, false)),
-				&slack.InputBlock{
-					Type:    slack.MBTInput,
 					BlockID: "whitelist",
 					Label:   slack.NewTextBlockObject("plain_text", "Whitelist", false, false),
 					Element: &slack.MultiSelectBlockElement{
@@ -172,6 +159,16 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Println(err)
 			}
+		case "message":
+			err = db.SetUserMessage(parsed.User.ID, parsed.View.State.Values["message"]["message"].Value)
+			if err != nil {
+				log.Println(err)
+			}
+
+			err = util.UpdateAppHome(parsed.User.ID, parsed.Team.ID)
+			if err != nil {
+				log.Println(err)
+			}
 		}
 	} else if parsed.Type == slack.InteractionTypeViewSubmission {
 		switch parsed.View.CallbackID {
@@ -181,13 +178,8 @@ func HandleInteractivity(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 			}
 
-			desiredMessage := parsed.View.State.Values["message"]["message"].Value
 			whitelist := parsed.View.State.Values["whitelist"]["whitelist"].SelectedUsers
 
-			err = db.SetUserMessage(parsed.User.ID, desiredMessage)
-			if err != nil {
-				log.Println(err)
-			}
 			err = db.SetUserWhitelist(parsed.User.ID, whitelist)
 			if err != nil {
 				log.Println(err)
