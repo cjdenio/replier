@@ -3,6 +3,7 @@ package events
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -17,12 +18,19 @@ import (
 
 // HandleMessage handles DMs
 func HandleMessage(outer *slackevents.EventsAPICallbackEvent, inner *slackevents.MessageEvent) {
-	authedUsers := outer.AuthedUsers
+	appClient := slack.New("", slack.OptionAppLevelToken(os.Getenv("SLACK_APP_LEVEL_TOKEN")))
+
+	authorizations, err := appClient.ListEventAuthorizations(outer.EventContext)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	wg := sync.WaitGroup{}
 
-	wg.Add(len(authedUsers))
+	wg.Add(len(authorizations))
 
-	for _, v := range authedUsers {
+	for _, v := range authorizations {
 		go func(userID string) {
 			defer wg.Done()
 
@@ -49,7 +57,7 @@ func HandleMessage(outer *slackevents.EventsAPICallbackEvent, inner *slackevents
 					log.Println(err)
 				}
 			}
-		}(v)
+		}(v.UserID)
 	}
 
 	wg.Wait()
@@ -57,12 +65,19 @@ func HandleMessage(outer *slackevents.EventsAPICallbackEvent, inner *slackevents
 
 // HandleMessageNonDM handles non-DM messages
 func HandleMessageNonDM(outer *slackevents.EventsAPICallbackEvent, inner *slackevents.MessageEvent) {
-	authedUsers := outer.AuthedUsers
+	appClient := slack.New("", slack.OptionAppLevelToken(os.Getenv("SLACK_APP_LEVEL_TOKEN")))
+
+	authorizations, err := appClient.ListEventAuthorizations(outer.EventContext)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	wg := sync.WaitGroup{}
 
-	wg.Add(len(authedUsers))
+	wg.Add(len(authorizations))
 
-	for _, v := range authedUsers {
+	for _, v := range authorizations {
 		go func(userID string) {
 			defer wg.Done()
 
@@ -91,7 +106,7 @@ func HandleMessageNonDM(outer *slackevents.EventsAPICallbackEvent, inner *slacke
 					log.Println(err)
 				}
 			}
-		}(v)
+		}(v.UserID)
 	}
 
 	wg.Wait()
