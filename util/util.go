@@ -38,8 +38,8 @@ func SendWelcomeMessage(teamID, userID string) error {
 		slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", "To get started, head on over to my Home tab. From there you can set up your autoreply message, then turn it on! :sparkles:", false, false), nil, nil),
 		slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", "Once you've turned your autoreply on, people will see it when they either DM you or mention you in a group DM/private channel/public channel.", false, false), nil, nil),
 		slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", "*By the way*, you can put `@person` in your autoreply message to get it replaced by the name of the person who messaged you!", false, false), nil, nil),
-		slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", "Want to get more advanced? You can set start/end dates to make sure your autoreply automatically turns on at the right time! :calendar:", false, false), nil, nil),
-		slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", "_That's all from me!_ If you run into any issues, or have any feature requests, please feel free to email us at <mailto:caleb@deniosoftware.com|caleb@deniosoftware.com> or open an issue on the <https://github.com/cjdenio/replier|GitHub repository!>", false, false), nil, nil),
+		slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", "Want to get more advanced? You can set start/end dates to make sure your autoreply automatically turns on and off at the right time! :calendar:", false, false), nil, nil),
+		slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", "_That's all from me!_ If you run into any issues, or have any feature requests, please feel free to open an issue on the <https://github.com/cjdenio/replier|GitHub repository>!", false, false), nil, nil),
 	), slack.MsgOptionText("Welcome to Replier!", false))
 
 	if err != nil {
