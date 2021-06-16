@@ -1,12 +1,15 @@
-FROM golang:latest
+FROM golang:1.16-alpine AS builder
 
 WORKDIR /usr/src/app
 
 COPY . .
 
-RUN go get .
-RUN go build -o replier .
+RUN go build -o app .
 
-EXPOSE 3000
+FROM alpine:latest AS runner
 
-CMD [ "./replier" ]
+WORKDIR /usr/src/app
+
+COPY --from=builder /usr/src/app/app ./app
+
+CMD ["./app"]
